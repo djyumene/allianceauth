@@ -1,5 +1,4 @@
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 from eveonline.managers import EveManager
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 def index_view(request):
     logger.debug("index_view called by user %s" % request.user)
-    return render_to_response('public/index.html', None, context_instance=RequestContext(request))
+    return render(request, 'public/index.html')
 
 
 @login_required
@@ -21,10 +20,10 @@ def dashboard_view(request):
     logger.debug("dashboard_view called by user %s" % request.user)
     render_items = {'characters': EveManager.get_characters_by_owner_id(request.user.id),
                     'authinfo': AuthServicesInfoManager.get_auth_service_info(request.user)}
-    return render_to_response('registered/dashboard.html', render_items, context_instance=RequestContext(request))
+    return render(request, 'registered/dashboard.html', context=render_items)
 
 
 @login_required
 def help_view(request):
     logger.debug("help_view called by user %s" % request.user)
-    return render_to_response('registered/help.html', None, context_instance=RequestContext(request))
+    return render(request, 'registered/help.html')

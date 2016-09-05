@@ -1,6 +1,4 @@
-from django.http import HttpResponseRedirect
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.decorators import user_passes_test
@@ -30,7 +28,7 @@ def sigtracker_view(request):
     sigtracker_list = sigtracker.objects.all()
     render_items = {'sigtracker': sigtracker.objects.all(),}
 
-    return render_to_response('registered/signaturemanagement.html', render_items, context_instance=RequestContext(request))
+    return render(request, 'registered/signaturemanagement.html', context=render_items)
 
 
 @login_required
@@ -59,14 +57,14 @@ def add_signature_view(request):
             sig.create_time = post_time
             sig.eve_character = character
             sig.save()
-            return HttpResponseRedirect("/sigtracker/")
+            return redirect("/sigtracker/")
     else:
         logger.info("Returning new SignatureForm")
         form = SignatureForm()
 
     render_items = {'form': form}
 
-    return render_to_response('registered/addsignature.html', render_items, context_instance=RequestContext(request))
+    return render(request, 'registered/addsignature.html', context=render_items)
 
 
 @login_required
@@ -79,7 +77,7 @@ def remove_signature(request, sigtracker_id):
         logger.info("Deleting sigtracker id %s by user %s" % (sigtracker_id, request.user))
     else:
         logger.info("Unable to delete signature id %s for user %s - signature matching id not found." % (sigtracker_id, request.user))
-    return HttpResponseRedirect("/sigtracker/")
+    return redirect("/sigtracker/")
 
 
 @login_required
@@ -106,7 +104,7 @@ def edit_signature(request, sigtracker_id):
             sig.save()
 
         logger.debug("Detected no changes between sigtracker id %s and supplied form." % sigtracker_id)
-        return HttpResponseRedirect("/sigtracker/")
+        return redirect("/sigtracker/")
     else:
         data = {
             'ident': sig.ident,
@@ -119,4 +117,4 @@ def edit_signature(request, sigtracker_id):
             'notes': sig.notes,
         }
         form = SignatureForm(initial= data)
-    return render_to_response('registered/signatureupdate.html', {'form':form}, context_instance=RequestContext(request))
+    return render(request, 'registered/signatureupdate.html', context={'form':form})

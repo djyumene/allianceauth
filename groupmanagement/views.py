@@ -1,6 +1,4 @@
-from django.template import RequestContext
-from django.shortcuts import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
@@ -34,8 +32,7 @@ def group_management(request):
 
     render_items = {'acceptrequests': acceptrequests, 'leaverequests': leaverequests}
 
-    return render_to_response('registered/groupmanagement.html',
-                              render_items, context_instance=RequestContext(request))
+    return render(request, 'registered/groupmanagement.html', context=render_items)
 
 
 @login_required
@@ -54,7 +51,7 @@ def group_accept_request(request, group_request_id):
         logger.exception("Unhandled exception occured while user %s attempting to accept grouprequest id %s." % (request.user, group_request_id))
         pass
 
-    return HttpResponseRedirect("/group/management/")
+    return redirect("/group/management/")
 
 
 @login_required
@@ -72,7 +69,7 @@ def group_reject_request(request, group_request_id):
         logger.exception("Unhandled exception occured while user %s attempting to reject group request id %s" % (request.user, group_request_id))
         pass
 
-    return HttpResponseRedirect("/group/management/")
+    return redirect("/group/management/")
 
 
 @login_required
@@ -91,7 +88,7 @@ def group_leave_accept_request(request, group_request_id):
         logger.exception("Unhandled exception occured while user %s attempting to accept group leave request id %s" % (request.user, group_request_id))
         pass
 
-    return HttpResponseRedirect("/group/management/")
+    return redirect("/group/management/")
 
 
 @login_required
@@ -109,7 +106,7 @@ def group_leave_reject_request(request, group_request_id):
         logger.exception("Unhandled exception occured while user %s attempting to reject group leave request id %s" % (request.user, group_request_id))
         pass
 
-    return HttpResponseRedirect("/group/management/")
+    return redirect("/group/management/")
 
 
 @login_required
@@ -146,8 +143,7 @@ def groups_view(request):
                     paired_list.append((group, "", ""))
 
     render_items = {'pairs': paired_list}
-    return render_to_response('registered/groups.html',
-                              render_items, context_instance=RequestContext(request))
+    return render(request, 'registered/groups.html', context=render_items)
 
 
 @login_required
@@ -157,7 +153,7 @@ def group_request_add(request, group_id):
     if OpenGroup.objects.filter(group=group).exists():
         logger.info("%s joining %s as is an open group" % (request.user, group))
         request.user.groups.add(group)
-        return HttpResponseRedirect("/groups")
+        return redirect("/groups")
     auth_info = AuthServicesInfoManager.get_auth_service_info(request.user)
     grouprequest = GroupRequest()
     grouprequest.status = _('Pending')
@@ -167,7 +163,7 @@ def group_request_add(request, group_id):
     grouprequest.leave_request = False
     grouprequest.save()
     logger.info("Created group request for user %s to group %s" % (request.user, Group.objects.get(id=group_id)))
-    return HttpResponseRedirect("/groups")
+    return redirect("/groups")
 
 
 @login_required
@@ -177,7 +173,7 @@ def group_request_leave(request, group_id):
     if OpenGroup.objects.filter(group=group).exists():
         logger.info("%s leaving %s as is an open group" % (request.user, group))
         request.user.groups.remove(group)
-        return HttpResponseRedirect("/groups")
+        return redirect("/groups")
     auth_info = AuthServicesInfoManager.get_auth_service_info(request.user)
     grouprequest = GroupRequest()
     grouprequest.status = _('Pending')
@@ -188,4 +184,4 @@ def group_request_leave(request, group_id):
     grouprequest.save()
     logger.info("Created group leave request for user %s to group %s" % (request.user, Group.objects.get(id=group_id)))
 
-    return HttpResponseRedirect("/groups")
+    return redirect("/groups")

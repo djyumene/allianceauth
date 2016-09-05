@@ -1,6 +1,4 @@
-from django.template import RequestContext
-from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.decorators import user_passes_test
@@ -45,7 +43,7 @@ def srp_management(request):
 
     context = {"srpfleets": SrpFleetMain.objects.filter(fleet_srp_status=""), "totalcost": totalcost,
                "price_pair": price_pair}
-    return render_to_response('registered/srpmanagement.html', context, context_instance=RequestContext(request))
+    return render(request, 'registered/srpmanagement.html', context=context)
 
 
 @login_required
@@ -65,7 +63,7 @@ def srp_management_all(request):
     logger.debug("Determined all-time total SRP cost %s" % totalcost)
 
     context = {"srpfleets": SrpFleetMain.objects.all(), "totalcost": totalcost, "price_pair": price_pair}
-    return render_to_response('registered/srpmanagement.html', context, context_instance=RequestContext(request))
+    return render(request, 'registered/srpmanagement.html', context=context)
 
 
 @login_required
@@ -83,11 +81,10 @@ def srp_fleet_view(request, fleet_id):
                    "srpfleetrequests": SrpUserRequest.objects.filter(srp_fleet_main=fleet_main),
                    "totalcost": totalcost}
 
-        return render_to_response('registered/srpfleetdata.html', context, context_instance=RequestContext(request))
-
+        return render(request, 'registered/srpfleetdata.html', context=context)
     else:
         logger.error("Unable to view SRP fleet id %s for user %s - fleet matching id not found." % (fleet_id, request.user))
-        return HttpResponseRedirect("/srp")
+        return redirect("/srp")
 
 
 @login_required
@@ -123,7 +120,7 @@ def srp_fleet_add_view(request):
 
     render_items = {'form': form, "completed": completed, "completed_srp_code": completed_srp_code}
 
-    return render_to_response('registered/srpfleetadd.html', render_items, context_instance=RequestContext(request))
+    return render(request, 'registered/srpfleetadd.html', context=render_items)
 
 
 @login_required
@@ -136,7 +133,7 @@ def srp_fleet_remove(request, fleet_id):
         logger.info("SRP Fleet %s deleted by user %s" % (srpfleetmain.fleet_name, request.user))
     else:
         logger.error("Unable to delete SRP fleet id %s for user %s - fleet matching id not found." % (fleet_id, request.user))
-    return HttpResponseRedirect("/srp")
+    return redirect("/srp")
 
 @login_required
 @permission_required('auth.srp_management')
@@ -149,7 +146,7 @@ def srp_fleet_disable(request, fleet_id):
         logger.info("SRP Fleet %s disabled by user %s" % (srpfleetmain.fleet_name, request.user))
     else:
         logger.error("Unable to disable SRP fleet id %s for user %s - fleet matching id not found." % (fleet_id, request.user))
-    return HttpResponseRedirect("/srp")
+    return redirect("/srp")
 
 @login_required
 @permission_required('auth.srp_management')
@@ -162,7 +159,7 @@ def srp_fleet_enable(request, fleet_id):
         logger.info("SRP Fleet %s enable by user %s" % (srpfleetmain.fleet_name, request.user))
     else:
         logger.error("Unable to enable SRP fleet id %s for user %s - fleet matching id not found." % (fleet_id, request.user))
-    return HttpResponseRedirect("/srp")
+    return redirect("/srp")
 
 @login_required
 @permission_required('auth.srp_management')
@@ -175,7 +172,7 @@ def srp_fleet_mark_completed(request, fleet_id):
         logger.info("Marked SRP Fleet %s as completed by user %s" % (srpfleetmain.fleet_name, request.user))
     else:
         logger.error("Unable to mark SRP fleet with id %s as completed for user %s - fleet matching id not found." % (fleet_id, request.user))
-    return HttpResponseRedirect("/srp_fleet_view/" + str(fleet_id))
+    return redirect("/srp_fleet_view/" + str(fleet_id))
 
 
 @login_required
@@ -189,7 +186,7 @@ def srp_fleet_mark_uncompleted(request, fleet_id):
         logger.info("Marked SRP Fleet %s as incomplete for user %s" % (fleet_id, request.user))
     else:
         logger.error("Unable to mark SRP Fleet id %s as incomplete for user %s - fleet matching id not found." % (fleet_id, request.user))
-    return HttpResponseRedirect("/srp_fleet_view/" + str(fleet_id))
+    return redirect("/srp_fleet_view/" + str(fleet_id))
 
 
 @login_required
@@ -227,8 +224,8 @@ def srp_request_view(request, fleet_srp):
                 (srp_kill_data, ship_value) = srpManager.get_kill_data(srp_kill_link)
             except ValueError:
                 logger.debug("User %s Submitted Invalid Killmail Link %s or server could not be reached" % (request.user, srp_request.killboard_link))
-                notify(request.user, "Your SRP request Killmail Link Failed Validation", message="Your SRP request Killmail link %s is invalid. Please make sure your using zKillboard." % srp_request.killboard_link, level="danger")
-                return HttpResponseRedirect("/srp")
+                notify(request.user, "Your SRP request Killmail Link Failed Validation", message="Your SRP request Killmail link %s is invalid. Please make sure you are using zKillboard." % srp_request.killboard_link, level="danger")
+                return redirect("/srp")
             srp_ship_name = srpManager.get_ship_name(srp_kill_data)
             srp_request.srp_ship_name = srp_ship_name
             kb_total_loss = ship_value
@@ -244,7 +241,7 @@ def srp_request_view(request, fleet_srp):
 
     render_items = {'form': form, "completed": completed, "no_srp_code": no_srp_code}
 
-    return render_to_response('registered/srpfleetrequest.html', render_items, context_instance=RequestContext(request))
+    return render(request, 'registered/srpfleetrequest.html', context=render_items)
 
 
 @login_required
@@ -261,9 +258,9 @@ def srp_request_remove(request, srp_request_id):
 
     if stored_fleet_view is None:
         logger.error("Unable to delete srp request id %s for user %s - request matching id not found." % (srp_request_id, request.user))
-        return HttpResponseRedirect("/srp")
+        return redirect("/srp")
     else:
-        return HttpResponseRedirect("/srp_fleet_view/" + str(stored_fleet_view))
+        return redirect("/srp_fleet_view/" + str(stored_fleet_view))
 
 
 @login_required
@@ -285,9 +282,9 @@ def srp_request_approve(request, srp_request_id):
 
     if stored_fleet_view is None:
         logger.error("Unable to approve srp request id %s on behalf of user %s - request matching id not found." % (srp_request_id, request.user))
-        return HttpResponseRedirect("/srp")
+        return redirect("/srp")
     else:
-        return HttpResponseRedirect("/srp_fleet_view/" + str(stored_fleet_view))
+        return redirect("/srp_fleet_view/" + str(stored_fleet_view))
 
 
 @login_required
@@ -305,9 +302,9 @@ def srp_request_reject(request, srp_request_id):
 
     if stored_fleet_view is None:
         logger.error("Unable to reject SRP request id %s on behalf of user %s - request matching id not found." % (srp_request_id, request.user))
-        return HttpResponseRedirect("/srp")
+        return redirect("/srp")
     else:
-        return HttpResponseRedirect("/srp_fleet_view/" + str(stored_fleet_view))
+        return redirect("/srp_fleet_view/" + str(stored_fleet_view))
 
 
 @login_required
@@ -330,15 +327,14 @@ def srp_request_update_amount_view(request, fleet_srp_request_id):
             srp_request.save()
             logger.info("Updated srp request id %s total to %s by user %s" % (fleet_srp_request_id, form.cleaned_data['srp_total_amount'], request.user))
 
-            return HttpResponseRedirect("/srp_fleet_view/" + str(srp_request.srp_fleet_main.id))
+            return redirect("/srp_fleet_view/" + str(srp_request.srp_fleet_main.id))
     else:
         logger.debug("Returning blank SrpFleetUpdateCostForm")
         form = SrpFleetUpdateCostForm()
 
     render_items = {'form': form, "no_srp_code": no_srp_code}
 
-    return render_to_response('registered/srpfleetrequestamount.html', render_items,
-                              context_instance=RequestContext(request))
+    return render(request, 'registered/srpfleetrequestamount.html', context=render_items)
 
 
 @login_required
@@ -356,7 +352,7 @@ def srp_fleet_edit_view(request, fleet_id):
                 srpfleetmain.fleet_srp_aar_link = form.cleaned_data['fleet_aar_link']
                 srpfleetmain.save()
                 logger.info("User %s edited SRP Fleet %s" % (request.user, srpfleetmain.fleet_name))
-                return HttpResponseRedirect("/srp")
+                return redirect("/srp")
         else:
             logger.debug("Returning blank SrpFleetMainUpdateForm")
             form = SrpFleetMainUpdateForm()
@@ -366,5 +362,4 @@ def srp_fleet_edit_view(request, fleet_id):
 
     render_items = {'form': form, "no_fleet_id": no_fleet_id}
 
-    return render_to_response('registered/srpfleetupdate.html', render_items,
-                              context_instance=RequestContext(request))
+    return render(request, 'registered/srpfleetupdate.html', context=render_items)

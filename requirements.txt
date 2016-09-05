@@ -11,8 +11,7 @@ slugify
 requests-oauthlib
 
 # Django Stuff #
-django==1.6.5
-django-evolution
+django>=1.10,<2.0
 django-bootstrap-form
 django-celery
 

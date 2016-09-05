@@ -1,8 +1,6 @@
 import datetime
 
-from django.http import HttpResponseRedirect
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404
@@ -51,7 +49,7 @@ def timer_view(request):
                     'future_timers': Timer.objects.all().filter(corp_timer=False).filter(eve_time__gte=datetime.datetime.now()),
                     'past_timers': Timer.objects.all().filter(corp_timer=False).filter(eve_time__lt=datetime.datetime.now())}
 
-    return render_to_response('registered/timermanagement.html', render_items, context_instance=RequestContext(request))
+    return render(requet, 'registered/timermanagement.html', context=render_items)
 
 
 @login_required
@@ -87,14 +85,14 @@ def add_timer_view(request):
             timer.user = request.user
             timer.save()
             logger.info("Created new timer in %s at %s by user %s" % (timer.system, timer.eve_time, request.user))
-            return HttpResponseRedirect("/timers/")
+            return redirect("/timers/")
     else:
         logger.debug("Returning new TimerForm")
         form = TimerForm()
 
     render_items = {'form': form}
 
-    return render_to_response('registered/addtimer.html', render_items, context_instance=RequestContext(request))
+    return render(request, 'registered/addtimer.html', context=render_items)
 
 
 @login_required
@@ -107,7 +105,7 @@ def remove_timer(request, timer_id):
         logger.debug("Deleting timer id %s by user %s" % (timer_id, request.user))
     else:
         logger.error("Unable to delete timer id %s for user %s - timer matching id not found." % (timer_id, request.user))
-    return HttpResponseRedirect("/timers/")
+    return redirect("/timers/")
 
 
 @login_required
@@ -142,7 +140,7 @@ def edit_timer(request, timer_id):
             timer.save()
 
         logger.debug("Detected no changes between timer id %s and supplied form." % timer_id)
-        return HttpResponseRedirect("/timers/")
+        return redirect("/timers/")
     else:
         current_time = timezone.now()
         td = timer.eve_time - current_time
@@ -161,4 +159,4 @@ def edit_timer(request, timer_id):
 
         }
         form = TimerForm(initial= data)
-    return render_to_response('registered/timerupdate.html', {'form':form}, context_instance=RequestContext(request))
+    return render(request, 'registered/timerupdate.html', context={'form':form})

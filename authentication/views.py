@@ -1,9 +1,7 @@
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth import authenticate
-from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render, redirect
 from django.utils import translation
 
 from forms import LoginForm
@@ -24,19 +22,18 @@ def login_user(request):
                 if user.is_active:
                     logger.info("Successful login attempt from user %s" % user)
                     login(request, user)
-                    return HttpResponseRedirect("/dashboard/")
+                    return redirect("/dashboard/")
                 else:
                     logger.info("Login attempt failed for user %s: user marked inactive." % user)
             else:
                 logger.info("Failed login attempt: provided username %s" % form.cleaned_data['username'])
 
-            return render_to_response('public/login.html', {'form': form, 'error': True},
-                                      context_instance=RequestContext(request))
+            return render(request, 'public/login.html', context={'form': form, 'error': True})
     else:
         logger.debug("Providing new login form.")
         form = LoginForm()
 
-    return render_to_response('public/login.html', {'form': form}, context_instance=RequestContext(request))
+    return render(request, 'public/login.html', context={'form': form})
 
 
 def logout_user(request):
@@ -44,4 +41,4 @@ def logout_user(request):
     logoutUser = request.user
     logout(request)
     logger.info("Successful logout for user %s" % logoutUser)
-    return HttpResponseRedirect("/")
+    return redirect("/")

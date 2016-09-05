@@ -1,5 +1,4 @@
-from django.template import RequestContext
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
@@ -60,7 +59,7 @@ def hr_application_management_view(request):
         'search_form': HRApplicationSearchForm(),
         'create': create_application_test(request.user)
     }
-    return render_to_response('registered/hrapplicationmanagement.html', context, context_instance=RequestContext(request))
+    return render('registered/hrapplicationmanagement.html', context=context)
 
 @login_required
 @user_passes_test(create_application_test)
@@ -81,13 +80,13 @@ def hr_application_create_view(request, form_id=None):
             return redirect('auth_hrapplications_view')
         else:
             questions = app_form.questions.all()
-            return render_to_response('registered/hrapplicationcreate.html', {'questions':questions, 'corp':app_form.corp}, context_instance=RequestContext(request))
+            return render(request, 'registered/hrapplicationcreate.html', context={'questions':questions, 'corp':app_form.corp})
     else:
         choices = []
         for app_form in ApplicationForm.objects.all():
             if not Application.objects.filter(user=request.user).filter(form=app_form).exists():
                 choices.append((app_form.id, app_form.corp.corporation_name))
-        return render_to_response('registered/hrapplicationcorpchoice.html', {'choices':choices}, context_instance=RequestContext(request))
+        return render(request, 'registered/hrapplicationcorpchoice.html', context={'choices':choices})
 
 @login_required
 def hr_application_personal_view(request, app_id):
@@ -102,7 +101,7 @@ def hr_application_personal_view(request, app_id):
             'comment_form': HRApplicationCommentForm(),
             'apis': [],
         }
-        return render_to_response('registered/hrapplicationview.html', context, context_instance=RequestContext(request))
+        return render(request, 'registered/hrapplicationview.html', context=context)
     else:
         logger.warn("User %s not authorized to view %s" % (request.user, app))
         return redirect('auth_hrapplications_view')
@@ -154,7 +153,7 @@ def hr_application_view(request, app_id):
         'comments': ApplicationComment.objects.filter(application=app),
         'comment_form': form,
     }
-    return render_to_response('registered/hrapplicationview.html', context, context_instance=RequestContext(request))
+    return render(request, 'registered/hrapplicationview.html', context=context)
 
 
 @login_required
@@ -240,17 +239,15 @@ def hr_application_search(request):
 
             context = {'applications': applications, 'search_form': HRApplicationSearchForm()}
 
-            return render_to_response('registered/hrapplicationsearchview.html',
-                                      context, context_instance=RequestContext(request))
+            return render(request, 'registered/hrapplicationsearchview.html', context=context)
         else:
             logger.debug("Form invalid - returning for user %s to retry." % request.user)
             context = {'applications': None, 'search_form': form}
-            return render_to_response('registered/hrapplicationsearchview.html',
-                                                                          context, context_instance=RequestContext(request))
+            return render(request, 'registered/hrapplicationsearchview.html', context=context)
 
     else:
         logger.debug("Returning empty search form for user %s" % request.user)
-        return HttpResponseRedirect("/hr_application_management/")
+        return redirect("/hr_application_management/")
 
 @login_required
 @permission_required('auth.human_resources')
@@ -271,4 +268,4 @@ def hr_application_mark_in_progress(request, app_id):
         notify(app.user, "Application In Progress", message="Your application to %s is being reviewed by %s" % (app.form.corp, app.reviewer_str))
     else:
         logger.warn("User %s unable to mark %s in progress: already being reviewed by %s" % (request.user, app, app.reviewer))
-    return HttpResponseRedirect("/hr_application_view/" + str(app_id))
+    return redirect("/hr_application_view/" + str(app_id))

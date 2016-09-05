@@ -1,6 +1,5 @@
 from django.conf import settings
-from django.shortcuts import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render, redirect
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
@@ -70,7 +69,7 @@ def fatlink_view(request):
     else:
         context = {'user':user, 'fats': latest_fats}
 
-    return render_to_response('registered/fatlinkview.html', context, context_instance=RequestContext(request))
+    return render(request, 'registered/fatlinkview.html', context=context)
 
 
 @login_required
@@ -109,7 +108,7 @@ def fatlink_statistics_view(request, year=datetime.date.today().year, month=date
     else:
         context = {'fatStats':fatStatsList, 'month':start_of_month.strftime("%B"), 'year':year, 'previous_month': start_of_previous_month}
 
-    return render_to_response('registered/fatlinkstatisticsview.html', context, context_instance=RequestContext(request))
+    return render('registered/fatlinkstatisticsview.html', context=context)
 
 
 
@@ -137,7 +136,7 @@ def fatlink_personal_statistics_view(request, year=datetime.date.today().year, m
     else:
         context = {'user':user, 'monthlystats': monthlystats, 'year':year, 'previous_year':year-1}
 
-    return render_to_response('registered/fatlinkpersonalstatisticsview.html', context, context_instance=RequestContext(request))
+    return render(request, 'registered/fatlinkpersonalstatisticsview.html', context=context)
 
 
 @login_required
@@ -169,7 +168,7 @@ def fatlink_monthly_personal_statistics_view(request, year, month, char_id=None)
     context["created_fats"] = created_fats
     context["n_created_fats"] = len(created_fats)
 
-    return render_to_response('registered/fatlinkpersonalmonthlystatisticsview.html', context, context_instance=RequestContext(request))
+    return render('registered/fatlinkpersonalmonthlystatisticsview.html', context=context)
 
 
 @login_required
@@ -211,14 +210,14 @@ def click_fatlink_view(request, hash, fatname):
                         context = {'trusted': True, 'errormessages': messages}
                 else:
                     context = {'character_id': request.META['HTTP_EVE_CHARID'], 'character_name': request.META['HTTP_EVE_CHARNAME']}
-                    return render_to_response('public/characternotexisting.html', context, context_instance=RequestContext(request))
+                    return render(request, 'public/characternotexisting.html', context=context)
             else:
                 context = {'trusted': True, 'expired': True}
         except ObjectDoesNotExist:
             context = {'trusted': True}
     else:
         context = {'trusted': False, 'fatname': fatname}
-    return render_to_response('public/clickfatlinkview.html', context, context_instance=RequestContext(request))
+    return render(request, 'public/clickfatlinkview.html', context=context)
 
 
 @login_required
@@ -247,12 +246,12 @@ def create_fatlink_view(request):
                     for errorname, message in e.message_dict.items():
                         messages.append(message[0].decode())
                     context = {'form': form, 'errormessages': messages}
-                    return render_to_response('registered/fatlinkformatter.html', context, context_instance=RequestContext(request))
+                    return render(request, 'registered/fatlinkformatter.html', context=context)
             else:
                 form = FatlinkForm()
                 context = {'form': form, 'badrequest': True}
-                return render_to_response('registered/fatlinkformatter.html', context, context_instance=RequestContext(request))
-            return HttpResponseRedirect('/fat/')
+                return render(request, 'registered/fatlinkformatter.html', context=context)
+            return redirect('/fat/')
 
     else:
         form = FatlinkForm()
@@ -260,7 +259,7 @@ def create_fatlink_view(request):
 
     context = {'form': form}
 
-    return render_to_response('registered/fatlinkformatter.html', context, context_instance=RequestContext(request))
+    return render(request, 'registered/fatlinkformatter.html', context=context)
 
 
 @login_required
@@ -268,7 +267,7 @@ def create_fatlink_view(request):
 def modify_fatlink_view(request, hash=""):
     logger.debug("modify_fatlink_view called by user %s" % request.user)
     if not hash:
-        return HttpResponseRedirect('/fat/')
+        return redirect('/fat/')
 
     fatlink = Fatlink.objects.filter(hash=hash)[0]
 
@@ -282,11 +281,11 @@ def modify_fatlink_view(request, hash=""):
     if(request.GET.get('deletefat')):
         logger.debug("Removing fleetactivitytracking  %s" % fatlink.name)
         fatlink.delete()
-        return HttpResponseRedirect('/fat/')
+        return redirect('/fat/')
 
     registered_fats = Fat.objects.filter(fatlink=fatlink).order_by('character')
 
     context = {'fatlink':fatlink, 'registered_fats':registered_fats}
 
-    return render_to_response('registered/fatlinkmodify.html', context, context_instance=RequestContext(request))
+    return render(request, 'registered/fatlinkmodify.html', context=context)
 

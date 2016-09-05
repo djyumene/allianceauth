@@ -1,13 +1,9 @@
-
-
-from django.http import HttpResponseRedirect
-from django.template import RequestContext
-from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.decorators import user_passes_test
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from django.shortcuts import render, redirect
 
 from util import check_if_user_has_permission
 from authentication.managers import AuthServicesInfoManager
@@ -32,7 +28,7 @@ def optimer_view(request):
     optimer_list = optimer.objects.all()
     render_items = {'optimer': optimer.objects.all(),}
 
-    return render_to_response('registered/operationmanagement.html', render_items, context_instance=RequestContext(request))
+    return render(request, 'registered/operationmanagement.html', context=render_items)
 
 
 @login_required
@@ -62,14 +58,14 @@ def add_optimer_view(request):
             op.eve_character = character
             op.save()
             logger.info("User %s created op timer with name %s" % (request.user, op.operation_name))
-            return HttpResponseRedirect("/optimer/")
+            return redirect("/optimer/")
     else:
         logger.debug("Returning new opForm")
         form = opForm()
 
     render_items = {'form': form}
 
-    return render_to_response('registered/addoperation.html', render_items, context_instance=RequestContext(request))
+    return render(request, 'registered/addoperation.html', context=render_items)
 
 
 @login_required
@@ -82,7 +78,7 @@ def remove_optimer(request, optimer_id):
         logger.info("Deleting optimer id %s by user %s" % (optimer_id, request.user))
     else:
         logger.error("Unable to delete optimer id %s for user %s - operation matching id not found." % (optimer_id, request.user))
-    return HttpResponseRedirect("/optimer/")
+    return redirect("/optimer/")
 
 @login_required
 @permission_required('auth.optimer_management')
@@ -108,7 +104,7 @@ def edit_optimer(request, optimer_id):
             op.save()
 
         logger.debug("Detected no changes between optimer id %s and supplied form." % optimer_id)
-        return HttpResponseRedirect("/optimer/")
+        return redirect("/optimer/")
     else:
         data = {
             'doctrine': op.doctrine,
@@ -121,4 +117,4 @@ def edit_optimer(request, optimer_id):
             'details': op.details,
         }
         form = opForm(initial= data)
-    return render_to_response('registered/optimerupdate.html', {'form':form}, context_instance=RequestContext(request))
+    return render(request, 'registered/optimerupdate.html', context={'form':form})

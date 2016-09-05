@@ -1,7 +1,5 @@
 from django.contrib.auth.models import User
-from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render, redirect
 from django.utils import translation
 
 from forms import RegistrationForm
@@ -24,12 +22,11 @@ def register_user_view(request):
                 user.save()
                 logger.info("Created new user %s" % user)
 
-                return HttpResponseRedirect("/dashboard/")
+                return redirect("/dashboard/")
 
             else:
                 logger.error("Unable to register new user: username %s already exists." % form.cleaned_data['username'])
-                return render_to_response('public/register.html', {'form': form, 'error': True}
-                                          , context_instance=RequestContext(request))
+                return render(request, 'public/register.html', context={'form': form, 'error': True})
         else:
             logger.debug("Registration form invalid. Returning for user %s to make corrections." % request.user)
 
@@ -37,4 +34,4 @@ def register_user_view(request):
         logger.debug("Returning blank registration form.")
         form = RegistrationForm()
 
-    return render_to_response('public/register.html', {'form': form}, context_instance=RequestContext(request))
+    return render(request, 'public/register.html', context={'form': form})

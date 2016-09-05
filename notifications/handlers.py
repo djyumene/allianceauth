@@ -1,11 +1,11 @@
 import logging
-from django.contrib.auth.models import User
-from .models import Notification
 
 logger = logging.getLogger(__name__)
 
 class NotificationHandler(logging.Handler):
     def emit(self, record):
+        from django.contrib.auth.models import User
+        from .models import Notification
         for user in User.objects.all():
             if user.has_perm('auth.logging_notifications'):
                 notif = Notification()

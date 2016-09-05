@@ -1,8 +1,6 @@
 from django.conf import settings
-from django.shortcuts import render_to_response
-from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import HttpResponseRedirect
+from django.shortcuts import render, redirect
 
 from collections import namedtuple
 
@@ -196,8 +194,8 @@ def corp_member_view(request, corpid = None, year=datetime.date.today().year, mo
         context["previous_month"] = start_of_previous_month
         context["this_month"] = start_of_month
 
-        return render_to_response('registered/corputils.html',context, context_instance=RequestContext(request) )
-    return HttpResponseRedirect("/dashboard/")
+        return render(request, 'registered/corputils.html',context=context)
+    return redirect("/dashboard/")
 
 
 @login_required
@@ -262,17 +260,16 @@ def corputils_search(request, corpid=settings.CORP_ID):
 
                 context = {'corp': corp, 'results': searchresults, 'search_form': CorputilsSearchForm(), "year":datetime.datetime.now().year, "month":datetime.datetime.now().month}
 
-                return render_to_response('registered/corputilssearchview.html',
-                                          context, context_instance=RequestContext(request))
+                return render(request, 'registered/corputilssearchview.html',
+                                          context=context)
             else:
                 logger.debug("Form invalid - returning for user %s to retry." % request.user)
                 context = {'corp': corp, 'members': None, 'search_form': CorputilsSearchForm()}
-                return render_to_response('registered/corputilssearchview.html',
-                                          context, context_instance=RequestContext(request))
+                return render(request, 'registered/corputilssearchview.html', context=context)
 
         else:
             logger.debug("Returning empty search form for user %s" % request.user)
-            return HttpResponseRedirect("/corputils/")
-    return HttpResponseRedirect("/dashboard/")
+            return redirect("/corputils/")
+    return redirect("/dashboard/")
 
 
