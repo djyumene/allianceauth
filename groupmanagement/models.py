@@ -7,7 +7,7 @@ from eveonline.models import EveCharacter
 
 class GroupDescription(models.Model):
     description = models.CharField(max_length=512)
-    group = models.ForeignKey(Group, unique=True)
+    group = models.OneToOneField(Group)
 
     def __str__(self):
         return self.group.name + " - Description"
@@ -24,7 +24,7 @@ class GroupRequest(models.Model):
         return self.user.username + ":" + self.group.name
 
 class HiddenGroup(models.Model):
-    group = models.ForeignKey(Group, unique=True)
+    group = models.OneToOneField(Group)
 
     def __str__(self):
         return self.group.name + " - Hidden"

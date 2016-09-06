@@ -10,7 +10,7 @@ def get_sentinel_user():
     return User.objects.get_or_create(username='deleted')[0]
 
 class Fatlink(models.Model):
-    fatdatetime = models.DateTimeField(default=timezone.now())
+    fatdatetime = models.DateTimeField(default=timezone.now)
     duration = models.PositiveIntegerField()
     fleet = models.CharField(max_length=254, default="")
     name = models.CharField(max_length=254)
