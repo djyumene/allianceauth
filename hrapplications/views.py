@@ -59,7 +59,7 @@ def hr_application_management_view(request):
         'search_form': HRApplicationSearchForm(),
         'create': create_application_test(request.user)
     }
-    return render('registered/hrapplicationmanagement.html', context=context)
+    return render(request, 'registered/hrapplicationmanagement.html', context=context)
 
 @login_required
 @user_passes_test(create_application_test)

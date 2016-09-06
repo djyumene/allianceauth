@@ -49,7 +49,7 @@ def timer_view(request):
                     'future_timers': Timer.objects.all().filter(corp_timer=False).filter(eve_time__gte=datetime.datetime.now()),
                     'past_timers': Timer.objects.all().filter(corp_timer=False).filter(eve_time__lt=datetime.datetime.now())}
 
-    return render(requet, 'registered/timermanagement.html', context=render_items)
+    return render(request, 'registered/timermanagement.html', context=render_items)
 
 
 @login_required
