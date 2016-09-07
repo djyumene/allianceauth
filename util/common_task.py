@@ -84,6 +84,11 @@ def deactivate_services(user):
         marketManager.disable_user(authinfo.market_username)
         AuthServicesInfoManager.update_user_market_info("", "", user)
         change = True
+    if authinfo.discourse_username and authinfo.discourse_username != "":
+        logger.debug("User %s has a Discourse account %s. Deleting." % (user, authinfo.discourse_username))
+        DiscourseManager.delete_user(authinfo.discourse_username)
+        AuthServicesInfoManager.update_user_discourse_info("", "", user)
+        change = True
     if change:
         notify(user, "Services Disabled", message="Your services accounts have been disabled.", level="danger")
 

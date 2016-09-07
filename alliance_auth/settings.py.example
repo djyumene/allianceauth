@@ -16,11 +16,6 @@ import djcelery
 
 djcelery.setup_loader()
 
-BROKER_URL = 'amqp://guest:guest@localhost:5672/'
-
-CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
-
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -131,58 +126,12 @@ WSGI_APPLICATION = 'alliance_auth.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'alliance_auth',
+        'NAME': 'aa_test',
         'USER': os.environ.get('AA_DB_DEFAULT_USER', 'allianceserver'),
         'PASSWORD': os.environ.get('AA_DB_DEFAULT_PASSWORD', 'password'),
         'HOST': os.environ.get('AA_DB_DEFAULT_HOST', '127.0.0.1'),
         'PORT': os.environ.get('AA_DB_DEFAULT_PORT', '3306'),
     },
-
-    'phpbb3': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'alliance_forum',
-        'USER': os.environ.get('AA_DB_PHPBB3_USER', 'allianceserver'),
-        'PASSWORD': os.environ.get('AA_DB_PHPBB3_PASSWORD', 'password'),
-        'HOST': os.environ.get('AA_DB_PHPBB3_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('AA_DB_PHPBB3_PORT', '3306'),
-    },
-
-    'ips4': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'alliance_ips4',
-        'USER': os.environ.get('AA_DB_IPS4_USER', 'allianceserver'),
-        'PASSWORD': os.environ.get('AA_DB_IPS4_PASSWORD', 'password'),
-        'HOST': os.environ.get('AA_DB_IPS4_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('AA_DB_IPS4_PORT', '3306'),
-    },
-
-    'smf': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'alliance_smf',
-        'USER': os.environ.get('AA_DB_SMF_USER', 'allianceserver'),
-        'PASSWORD': os.environ.get('AA_DB_SMF_PASSWORD', 'password'),
-        'HOST': os.environ.get('AA_DB_SMF_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('AA_DB_SMF_PORT', '3306'),
-    },
-
-    'market': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'alliance_market',
-        'USER': os.environ.get('AA_DB_MARKET_USER', 'allianceserver'),
-        'PASSWORD': os.environ.get('AA_DB_MARKET_PASSWORD', 'password'),
-        'HOST': os.environ.get('AA_DB_MARKET_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('AA_DB_MARKET_PORT', '3306'),
-    },
-
-    'pathfinder': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'alliance_pathfinder',
-        'USER': os.environ.get('AA_DB_PATHFINDER_USER', 'allianceserver'),
-        'PASSWORD': os.environ.get('AA_DB_PATHFINDER_PASSWORD', 'password'),
-        'HOST': os.environ.get('AA_DB_PATHFINDER_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('AA_DB_PATHFINDER_PORT', '3306'),
-    }
-    
 }
 
 # Password validation
@@ -244,7 +193,6 @@ STATICFILES_DIRS = (
 ###########################
 IS_CORP = 'True' == os.environ.get('AA_IS_CORP', 'True')
 
-
 #################
 # EMAIL SETTINGS
 #################
@@ -273,7 +221,6 @@ EMAIL_USE_TLS = 'True' == os.environ.get('AA_EMAIL_USE_TLS', 'True')
 KILLBOARD_URL = os.environ.get('AA_KILLBOARD_URL', '')
 EXTERNAL_MEDIA_URL = os.environ.get('AA_EXTERNAL_MEDIA_URL', '')
 FORUM_URL = os.environ.get('AA_FORUM_URL', '')
-SMF_URL = os.environ.get('AA_SMF_URL', '')
 
 #########################
 # Default Group Settings
@@ -315,7 +262,6 @@ ENABLE_AUTH_DISCOURSE = 'True' == os.environ.get('AA_ENABLE_AUTH_DISCOURSE', 'Fa
 ENABLE_AUTH_IPS4 = 'True' == os.environ.get('AA_ENABLE_AUTH_IPS4', 'False')
 ENABLE_AUTH_SMF = 'True' == os.environ.get('AA_ENABLE_AUTH_SMF', 'False')
 ENABLE_AUTH_MARKET = 'True' == os.environ.get('AA_ENABLE_AUTH_MARKET', 'False')
-ENABLE_AUTH_PATHFINDER = 'True' == os.environ.get('AA_ENABLE_AUTH_PATHFINDER', 'False')
 ENABLE_AUTH_XENFORO = 'True' == os.environ.get('AA_ENABLE_AUTH_XENFORO', 'False')
 
 #####################
@@ -345,7 +291,6 @@ ENABLE_BLUE_DISCOURSE = 'True' == os.environ.get('AA_ENABLE_BLUE_DISCOURSE', 'Fa
 ENABLE_BLUE_IPS4 = 'True' == os.environ.get('AA_ENABLE_BLUE_IPS4', 'False')
 ENABLE_BLUE_SMF = 'True' == os.environ.get('AA_ENABLE_BLUE_SMF', 'False')
 ENABLE_BLUE_MARKET = 'True' == os.environ.get('AA_ENABLE_BLUE_MARKET', 'False')
-ENABLE_BLUE_PATHFINDER = 'True' == os.environ.get('AA_ENABLE_BLUE_PATHFINDER', 'False')
 ENABLE_BLUE_XENFORO = 'True' == os.environ.get('AA_ENABLE_BLUE_XENFORO', 'False')
 
 #########################
@@ -388,15 +333,18 @@ BLUE_API_ACCOUNT = 'True' == os.environ.get('AA_BLUE_API_ACCOUNT', 'False')
 REJECT_OLD_APIS = 'True' == os.environ.get('AA_REJECT_OLD_APIS', 'False')
 REJECT_OLD_APIS_MARGIN = os.environ.get('AA_REJECT_OLD_APIS_MARGIN', 50)
 
-##########################
-# Pathfinder Configuration
-##########################
-PATHFINDER_URL = os.environ.get('AA_PATHFINDER_URL', 'http://pathfinder.yourdomain.com')
-
 #####################
 # Alliance Market
 #####################
 MARKET_URL = os.environ.get('AA_MARKET_URL', 'http://yourdomain.com/market')
+MARKET_DB = {
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': 'alliance_market',
+    'USER': os.environ.get('AA_DB_MARKET_USER', 'allianceserver'),
+    'PASSWORD': os.environ.get('AA_DB_MARKET_PASSWORD', 'password'),
+    'HOST': os.environ.get('AA_DB_MARKET_HOST', '127.0.0.1'),
+    'PORT': os.environ.get('AA_DB_MARKET_PORT', '3306'),
+}
 
 #####################
 # HR Configuration
@@ -407,7 +355,7 @@ MARKET_URL = os.environ.get('AA_MARKET_URL', 'http://yourdomain.com/market')
 JACK_KNIFE_URL = os.environ.get('AA_JACK_KNIFE_URL', 'http://ridetheclown.com/eveapi/audit.php')
 
 #####################
-# Forum Configuration
+# IPBoard3 Configuration
 #####################
 # IPBOARD_ENDPOINT - Api endpoint if using ipboard
 # IPBOARD_APIKEY - Api key to interact with ipboard
@@ -454,6 +402,18 @@ BROADCAST_SERVICE_NAME = os.environ.get('AA_BROADCAST_SERVICE_NAME', "broadcast"
 ######################################
 MUMBLE_URL = os.environ.get('AA_MUMBLE_URL', "yourdomain.com")
 MUMBLE_SERVER_ID = int(os.environ.get('AA_MUMBLE_SERVER_ID', '1'))
+
+######################################
+# PHPBB3 Configuration
+######################################
+PHPBB3_DB = {
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': 'alliance_forum',
+    'USER': os.environ.get('AA_DB_PHPBB3_USER', 'allianceserver'),
+    'PASSWORD': os.environ.get('AA_DB_PHPBB3_PASSWORD', 'password'),
+    'HOST': os.environ.get('AA_DB_PHPBB3_HOST', '127.0.0.1'),
+    'PORT': os.environ.get('AA_DB_PHPBB3_PORT', '3306'),
+}
 
 ######################################
 # Teamspeak3 Configuration
@@ -503,7 +463,6 @@ DISCOURSE_URL = os.environ.get('AA_DISCOURSE_URL', '')
 DISCOURSE_API_USERNAME = os.environ.get('AA_DISCOURSE_API_USERNAME', '')
 DISCOURSE_API_KEY = os.environ.get('AA_DISCOURSE_API_KEY', '')
 
-
 #####################################
 # IPS4 Configuration
 #####################################
@@ -512,6 +471,28 @@ DISCOURSE_API_KEY = os.environ.get('AA_DISCOURSE_API_KEY', '')
 #####################################
 IPS4_URL = os.environ.get('AA_IPS4_URL', 'http://yourdomain.com/ips4')
 IPS4_API_KEY = os.environ.get('AA_IPS4_API_KEY', '')
+IPS4_DB = {
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': 'alliance_ips4',
+    'USER': os.environ.get('AA_DB_IPS4_USER', 'allianceserver'),
+    'PASSWORD': os.environ.get('AA_DB_IPS4_PASSWORD', 'password'),
+    'HOST': os.environ.get('AA_DB_IPS4_HOST', '127.0.0.1'),
+    'PORT': os.environ.get('AA_DB_IPS4_PORT', '3306'),
+}
+
+
+######################################
+# SMF Configuration
+######################################
+SMF_URL = os.environ.get('AA_SMF_URL', '')
+SMF_DB = {
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': 'alliance_smf',
+    'USER': os.environ.get('AA_DB_SMF_USER', 'allianceserver'),
+    'PASSWORD': os.environ.get('AA_DB_SMF_PASSWORD', 'password'),
+    'HOST': os.environ.get('AA_DB_SMF_HOST', '127.0.0.1'),
+    'PORT': os.environ.get('AA_DB_SMF_PORT', '3306'),
+}
 
 ######################################
 # Fleet-Up Configuration
@@ -638,3 +619,13 @@ LOGGING = {
         },
     }
 }
+
+# Conditionally add databases only if configured
+if ENABLE_AUTH_FORUM or ENABLE_BLUE_FORUM:
+    DATABASES['phpbb3'] = PHPBB3_DB
+if ENABLE_AUTH_SMF or ENABLE_BLUE_SMF:
+    DATABASES['smf'] = SMF_DB
+if ENABLE_AUTH_MARKET or ENABLE_BLUE_MARKET:
+    DATABASES['market'] = MARKET_DB
+if ENABLE_AUTH_IPS4 or ENABLE_BLUE_IPS4:
+    DATABASES['ips4'] = IPS4_DB

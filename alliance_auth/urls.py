@@ -118,13 +118,6 @@ urlpatterns = [
                            name='auth_reset_market_password'),
                        url(r'^set_market_password/$', services.views.set_market_password, name='auth_set_market_password'),
 
-                       # Pathfinder Control
-                       url(r'^activate_pathfinder/$', services.views.activate_pathfinder, name='auth_activate_pathfinder'),
-                       url(r'^deactivate_pathfinder/$', services.views.deactivate_pathfinder, name='auth_deactivate_pathfinder'),
-                       url(r'^reset_pathfinder_password/$', services.views.reset_pathfinder_password,
-                           name='auth_reset_pathfinder_password'),
-                       url(r'^set_pathfinder_password/$', services.views.set_pathfinder_password, name='auth_set_pathfinder_password'),
-
                        # SRP URLS
                        url(r'^srp_fleet_remove/(\w+)$', srp.views.srp_fleet_remove, name='auth_srp_fleet_remove'),
                        url(r'^srp_fleet_disable/(\w+)$', srp.views.srp_fleet_disable, name='auth_srp_fleet_disable'),

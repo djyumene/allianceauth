@@ -42,7 +42,6 @@ def domain_url(request):
             'ENABLE_AUTH_SMF': settings.ENABLE_AUTH_SMF,
             'ENABLE_AUTH_XENFORO': settings.ENABLE_AUTH_XENFORO,
             'ENABLE_AUTH_MARKET': settings.ENABLE_AUTH_MARKET,
-            'ENABLE_AUTH_PATHFINDER': settings.ENABLE_AUTH_PATHFINDER,
             'ENABLE_BLUE_JABBER': settings.ENABLE_BLUE_JABBER,
             'ENABLE_BLUE_FORUM': settings.ENABLE_BLUE_FORUM,
             'ENABLE_BLUE_MUMBLE': settings.ENABLE_BLUE_MUMBLE,
