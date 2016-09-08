@@ -4,7 +4,7 @@ python manage.py migrate --fake sessions 0001_initial
 python manage.py migrate --fake auth 0001_initial
 python manage.py migrate admin
 python manage.py migrate sessions
-python manage.py mgirate djcelery
+python manage.py migrate djcelery
 python manage.py migrate auth
 python manage.py migrate --fake authentication 0001_initial
 python manage.py migrate --fake celerytask 0001_initial

@@ -57,7 +57,7 @@ def fleetup_characters(request):
 
     context = {"member_list": sorted(member_list.items())}
 
-    return render('registered/fleetupcharacters.html',context=context)
+    return render(request, 'registered/fleetupcharacters.html',context=context)
 
 @login_required
 @user_passes_test(fleetup_util_test)
@@ -65,7 +65,7 @@ def fleetup_fittings(request):
     logger.debug("fleetup_fittings called by user %s" % request.user)
     fitting_list = FleetUpManager.get_fleetup_fittings()
     context = {"fitting_list": sorted(fitting_list.items())}
-    return render('registered/fleetupfittingsview.html',context=context)
+    return render(request, 'registered/fleetupfittingsview.html',context=context)
 
 @login_required
 @user_passes_test(fleetup_util_test)
