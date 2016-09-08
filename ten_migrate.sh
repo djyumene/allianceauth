@@ -1,3 +1,4 @@
+pip install -r requirements.txt
 python manage.py migrate --fake admin 0001_initial
 python manage.py migrate --fake djcelery 0001_initial
 python manage.py migrate --fake sessions 0001_initial
