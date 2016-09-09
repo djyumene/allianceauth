@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import user_passes_test
+from authentication.decorators import members_and_blues
 from django.utils import timezone
 
 from util import check_if_user_has_permission
@@ -23,7 +23,7 @@ def timer_util_test(user):
 
 
 @login_required
-@user_passes_test(timer_util_test)
+@members_and_blues()
 @permission_required('auth.timer_view')
 def timer_view(request):
     logger.debug("timer_view called by user %s" % request.user)

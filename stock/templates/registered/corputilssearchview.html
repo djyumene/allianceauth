@@ -24,7 +24,7 @@
                             <form class="navbar-form navbar-right" role="search" action={% url 'auth_corputils_search' %}{{ corp.corporation_id }}/ method="POST">
                                 <div class="form-group">
                                 {% csrf_token %}
-                                {{ search_form.as_table }}
+                                {{ search_form|bootstrap }}
                                 </div>
                                 <button class="btn btn-default" type="submit">{% trans "Search" %}</button>
                             </form>

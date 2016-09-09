@@ -113,7 +113,7 @@
                                     class="fa fa-users fa-fw grayiconecolor"></i>{% trans " Characters" %}</a>
                         </li>
 
-                        {% if  perms.auth.member %}
+                        {% if STATE == MEMBER_STATE or user.is_superuser %}
                             <li>
                                 <a {% ifequal request.path "/groups/" %} class="active" {% endifequal %}
                                                                          href="{% url 'auth_groups' %}"><i
@@ -131,7 +131,7 @@
                         <li class="text-center divider-horizontal">
                             <h5>{% trans "Aux Navigation" %}</h5>
                         </li>
-                        {% if  perms.auth.member or perms.auth.blue_member %}
+                        {% if STATE in MEMBER_BLUE_STATE or user.is_superuser %}
                             <li>
                                 <a {% ifequal request.path "/services/" %} class="active" {% endifequal %}
                                                                            href="{% url 'auth_services' %}"><i
@@ -139,7 +139,7 @@
                             </li>
                         {% endif %}
 
-                        {% if not perms.auth.member or perms.auth.human_resources %}
+                        {% if not STATE == MEMBER_STATE or perms.auth.human_resources %}
                             <li>
                                 <a {% ifequal request.path "/hr_application_management/" %}
                                     class="active" {% endifequal %}
@@ -164,7 +164,7 @@
                             </li>
                         {% endif %}
 
-                        {% if  perms.auth.member or perms.auth.blue_member %}
+                        {% if STATE in MEMBER_BLUE_STATE or user.is_superuser %}
 							<li>
                                 <a {% ifequal request.path "/fits" %} class="active" {% endifequal %}
                                                                                   href="{% url 'auth_fleet_fits' %}"><i
@@ -178,14 +178,7 @@
 
 			{% endif %}
 
-                        {% if  perms.auth.member or perms.auth.blue_member %}
-                            {% if perms.auth.signature_view %}
-			      <li>
-                                <a {% ifequal request.path "/sigtracker" %} class="active" {% endifequal %}
-                                                                                  href="{% url 'auth_signature_view' %}"><i
-                                        class="fa fa-compass fa-fw grayiconecolor"></i>{% trans " Wormhole Tracker" %}</a>
-                            </li>
-                            {% endif %}
+                        {% if STATE in MEMBER_BLUE_STATE or user.is_superuser %}
 			    {% if perms.auth.optimer_view %}
                             <li>
                                 <a {% ifequal request.path "/optimer" %} class="active" {% endifequal %}
@@ -212,9 +205,7 @@
                                                                       href="{% url 'auth_srp_management_view' %}"><i
                                         class="fa fa-money fa-fw grayiconecolor"></i>{% trans " Ship Replacement" %}</a>
                             </li>
-
                         {% endif %}
-
 
                         <li class="text-center divider-horizontal">
                             <h5>{% trans "Util" %}</h5>
@@ -225,7 +216,7 @@
                                     class="fa fa-lock fa-fw grayiconecolor"></i>{% trans "Change Password" %}</a>
                         </li>
 
-                        {% if  perms.auth.member or perms.auth.blue_member %}
+                        {% if STATE in MEMBER_BLUE_STATE or user.is_superuser %}
                             <li>
                                 <a {% ifequal request.path "/tool/fleet_formatter_tool/" %}
                                     class="active" {% endifequal %}

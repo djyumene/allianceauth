@@ -13,7 +13,10 @@ requests-oauthlib
 # Django Stuff #
 django>=1.10,<2.0
 django-bootstrap-form
-django-celery
+
+# awating release for fix to celery/django-celery#447
+# django-celery
+git+https://github.com/celery/django-celery
 
 git+git://github.com/nikdoof/python-ts3.git
 git+git://github.com/seamus-45/openfire-restapi.git

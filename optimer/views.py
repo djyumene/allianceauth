@@ -8,20 +8,17 @@ from django.shortcuts import render, redirect
 from util import check_if_user_has_permission
 from authentication.managers import AuthServicesInfoManager
 from eveonline.managers import EveManager
-from form import opForm
-from models import optimer
+from optimer.form import opForm
+from optimer.models import optimer
+from authentication.decorators import members_and_blues
 
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-def optimer_util_test(user):
-    return check_if_user_has_permission(user, 'member') or check_if_user_has_permission(user, 'blue_member')
-
-
 @login_required
-@user_passes_test(optimer_util_test)
+@members_and_blues()
 @permission_required('auth.optimer_view')
 def optimer_view(request):
     logger.debug("optimer_view called by user %s" % request.user)

@@ -18,7 +18,6 @@ import srp.views
 import notifications.views
 import registration.views
 import hrapplications.views
-import sigtracker.views
 
 # Functional/Untranslated URL's
 urlpatterns = [
@@ -253,12 +252,6 @@ urlpatterns += i18n_patterns(
                        url(_(r'^add_timer/$'), timerboard.views.add_timer_view, name='auth_add_timer_view'),
                        url(_(r'^remove_timer/(\w+)'), timerboard.views.remove_timer, name='auth_remove_timer'),
                        url(_(r'^edit_timer/(\w+)$'), timerboard.views.edit_timer, name='auth_edit_timer'),
-                       
-                       # Sig Tracker
-                       url(_(r'^sigtracker/$'), sigtracker.views.sigtracker_view, name='auth_signature_view'),
-                       url(_(r'^add_signature/$'), sigtracker.views.add_signature_view, name='auth_add_signature_view'),
-                       url(_(r'^remove_signature/(\w+)'), sigtracker.views.remove_signature, name='auth_remove_signature'),
-                       url(_(r'^edit_signature/(\w+)$'), sigtracker.views.edit_signature, name='auth_edit_signature'),
                        
                        #SRP URLS
                        url(_(r'^srp/$'), srp.views.srp_management, name='auth_srp_management_view'),

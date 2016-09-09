@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.decorators import user_passes_test
 
 from util import random_string
 from eveonline.managers import EveManager
@@ -16,17 +15,14 @@ from form import SrpFleetMainUpdateForm
 from services.managers.srp_manager import srpManager
 from notifications import notify
 from django.utils import timezone
+from authentication.decorators import members_and_blues
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-def srp_util_test(user):
-    return check_if_user_has_permission(user, 'member') or check_if_user_has_permission(user, 'blue_member')
-
-
 @login_required
-@user_passes_test(srp_util_test)
+@members_and_blues()
 def srp_management(request):
     logger.debug("srp_management called by user %s" % request.user)
     totalcost = 0
@@ -47,7 +43,7 @@ def srp_management(request):
 
 
 @login_required
-@user_passes_test(srp_util_test)
+@members_and_blues()
 def srp_management_all(request):
     logger.debug("srp_management_all called by user %s" % request.user)
     totalcost = 0
@@ -67,7 +63,7 @@ def srp_management_all(request):
 
 
 @login_required
-@user_passes_test(srp_util_test)
+@members_and_blues()
 def srp_fleet_view(request, fleet_id):
     logger.debug("srp_fleet_view called by user %s for fleet id %s" % (request.user, fleet_id))
     if SrpFleetMain.objects.filter(id=fleet_id).exists():
@@ -190,7 +186,7 @@ def srp_fleet_mark_uncompleted(request, fleet_id):
 
 
 @login_required
-@user_passes_test(srp_util_test)
+@members_and_blues()
 def srp_request_view(request, fleet_srp):
     logger.debug("srp_request_view called by user %s for fleet srp code %s" % (request.user, fleet_srp))
     completed = False

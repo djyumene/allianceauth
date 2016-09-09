@@ -36,6 +36,7 @@ from forms import DiscordForm
 from forms import ServicePasswordForm
 from forms import TeamspeakJoinForm
 from util import check_if_user_has_permission
+from authentication.decorators import members_and_blues
 
 import threading
 import datetime 
@@ -118,6 +119,7 @@ def jabber_broadcast_view(request):
 
 
 @login_required
+@members_and_blues()
 def services_view(request):
     logger.debug("services_view called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -125,14 +127,11 @@ def services_view(request):
     return render(request, 'registered/services.html', context={'authinfo': authinfo})
 
 
-def service_blue_alliance_test(user):
-    return check_if_user_has_permission(user, 'member') or check_if_user_has_permission(user, 'blue_member')
-
 def superuser_test(user):
     return user.is_superuser
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_forum(request):
     logger.debug("activate_forum called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -152,7 +151,7 @@ def activate_forum(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_forum(request):
     logger.debug("deactivate_forum called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -167,7 +166,7 @@ def deactivate_forum(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def reset_forum_password(request):
     logger.debug("reset_forum_password called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -181,7 +180,7 @@ def reset_forum_password(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_xenforo_forum(request):
     logger.debug("activate_xenforo_forum called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -197,7 +196,7 @@ def activate_xenforo_forum(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_xenforo_forum(request):
     logger.debug("deactivate_xenforo_forum called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -209,7 +208,7 @@ def deactivate_xenforo_forum(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def reset_xenforo_password(request):
     logger.debug("reset_xenforo_password called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -224,7 +223,7 @@ def reset_xenforo_password(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def set_xenforo_password(request):
     logger.debug("set_xenforo_password called by user %s" % request.user)
     error = None
@@ -255,7 +254,7 @@ def set_xenforo_password(request):
     return render(request, 'registered/service_password.html', context=context)
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_ipboard_forum(request):
     logger.debug("activate_ipboard_forum called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -274,7 +273,7 @@ def activate_ipboard_forum(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_ipboard_forum(request):
     logger.debug("deactivate_ipboard_forum called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -289,7 +288,7 @@ def deactivate_ipboard_forum(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def reset_ipboard_password(request):
     logger.debug("reset_ipboard_password called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -303,7 +302,7 @@ def reset_ipboard_password(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_jabber(request):
     logger.debug("activate_jabber called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -322,7 +321,7 @@ def activate_jabber(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_jabber(request):
     logger.debug("deactivate_jabber called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -337,7 +336,7 @@ def deactivate_jabber(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def reset_jabber_password(request):
     logger.debug("reset_jabber_password called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -352,7 +351,7 @@ def reset_jabber_password(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_mumble(request):
     logger.debug("activate_mumble called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -381,7 +380,7 @@ def activate_mumble(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_mumble(request):
     logger.debug("deactivate_mumble called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -396,7 +395,7 @@ def deactivate_mumble(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def reset_mumble_password(request):
     logger.debug("reset_mumble_password called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -412,7 +411,7 @@ def reset_mumble_password(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_teamspeak3(request):
     logger.debug("activate_teamspeak3 called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -440,7 +439,7 @@ def activate_teamspeak3(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def verify_teamspeak3(request):
     logger.debug("verify_teamspeak3 called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -462,7 +461,7 @@ def verify_teamspeak3(request):
     return render(request, 'registered/teamspeakjoin.html', context=context)
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_teamspeak3(request):
     logger.debug("deactivate_teamspeak3 called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -478,7 +477,7 @@ def deactivate_teamspeak3(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def reset_teamspeak3_perm(request):
     logger.debug("reset_teamspeak3_perm called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -512,7 +511,7 @@ def fleet_fits(request):
     return render(request, 'registered/fleetfits.html', context=context)
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_discord(request):
     logger.debug("deactivate_discord called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -525,7 +524,7 @@ def deactivate_discord(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def reset_discord(request):
     logger.debug("reset_discord called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -538,13 +537,13 @@ def reset_discord(request):
     return redirect("/services/")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_discord(request):
     logger.debug("activate_discord called by user %s" % request.user)
     return redirect(DiscordOAuthManager.generate_oauth_redirect_url())
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def discord_callback(request):
     logger.debug("Received Discord callback for activation of user %s" % request.user)
     code = request.GET.get('code', None)
@@ -568,7 +567,7 @@ def discord_add_bot(request):
     return redirect(DiscordOAuthManager.generate_bot_add_url())
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def set_forum_password(request):
     logger.debug("set_forum_password called by user %s" % request.user)
     error = None
@@ -599,7 +598,7 @@ def set_forum_password(request):
     return render(request, 'registered/service_password.html', context=context)
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def set_mumble_password(request):
     logger.debug("set_mumble_password called by user %s" % request.user)
     error = None
@@ -630,7 +629,7 @@ def set_mumble_password(request):
     return render(request, 'registered/service_password.html', context=context)
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def set_jabber_password(request):
     logger.debug("set_jabber_password called by user %s" % request.user)
     error = None
@@ -661,7 +660,7 @@ def set_jabber_password(request):
     return render(request, 'registered/service_password.html', context=context)
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def set_ipboard_password(request):
     logger.debug("set_ipboard_password called by user %s" % request.user)
     error = None
@@ -692,7 +691,7 @@ def set_ipboard_password(request):
     return render(request, 'registered/service_password.html', context=context)
     
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_discourse(request):
     logger.debug("activate_discourse called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -710,7 +709,7 @@ def activate_discourse(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_discourse(request):
     logger.debug("deactivate_discourse called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -723,7 +722,7 @@ def deactivate_discourse(request):
     return redirect("/dashboard")
     
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_ips4(request):
     logger.debug("activate_ips4 called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -742,7 +741,7 @@ def activate_ips4(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def reset_ips4_password(request):
     logger.debug("reset_ips4_password called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -757,7 +756,7 @@ def reset_ips4_password(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def set_ips4_password(request):
     logger.debug("set_ips4_password called by user %s" % request.user)
     error = None
@@ -789,7 +788,7 @@ def set_ips4_password(request):
     return render(request, 'registered/service_password.html', context=context)
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_ips4(request):
     logger.debug("deactivate_ips4 called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -802,7 +801,7 @@ def deactivate_ips4(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_smf(request):
     logger.debug("activate_smf called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -822,7 +821,7 @@ def activate_smf(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_smf(request):
     logger.debug("deactivate_smf called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -837,7 +836,7 @@ def deactivate_smf(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def reset_smf_password(request):
     logger.debug("reset_smf_password called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -851,7 +850,7 @@ def reset_smf_password(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def set_smf_password(request):
     logger.debug("set_smf_password called by user %s" % request.user)
     error = None
@@ -882,7 +881,7 @@ def set_smf_password(request):
     return render(request, 'registered/service_password.html', context=context)
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def activate_market(request):
     logger.debug("activate_market called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -901,7 +900,7 @@ def activate_market(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def deactivate_market(request):
     logger.debug("deactivate_market called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -916,7 +915,7 @@ def deactivate_market(request):
 
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def reset_market_password(request):
     logger.debug("reset_market_password called by user %s" % request.user)
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
@@ -930,7 +929,7 @@ def reset_market_password(request):
     return redirect("/dashboard")
 
 @login_required
-@user_passes_test(service_blue_alliance_test)
+@members_and_blues()
 def set_market_password(request):
     logger.debug("set_market_password called by user %s" % request.user)
     error = None

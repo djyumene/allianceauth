@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     'hrapplications',
     'timerboard',
     'srp',
-    'sigtracker',
     'optimer',
     'corputils',
     'fleetactivitytracking',
@@ -104,6 +103,8 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'util.context_processors.auth_settings',
                 'notifications.context_processors.user_notification_count',
+                'authentication.context_processors.states',
+                'authentication.context_processors.membership_state',
             ],
         },
     },
@@ -145,6 +146,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_URL = 'auth_login_user'
+
+SUPERUSER_STATE_BYPASS = 'True' == os.environ.get('AA_SUPERUSER_STATE_BYPASS', 'True')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
@@ -347,7 +350,7 @@ MARKET_DB = {
 JACK_KNIFE_URL = os.environ.get('AA_JACK_KNIFE_URL', 'http://ridetheclown.com/eveapi/audit.php')
 
 #####################
-# IPBoard3 Configuration
+# Forum Configuration
 #####################
 # IPBOARD_ENDPOINT - Api endpoint if using ipboard
 # IPBOARD_APIKEY - Api key to interact with ipboard
@@ -454,6 +457,7 @@ DISCORD_SYNC_NAMES = 'True' == os.environ.get('AA_DISCORD_SYNC_NAMES', 'False')
 DISCOURSE_URL = os.environ.get('AA_DISCOURSE_URL', '')
 DISCOURSE_API_USERNAME = os.environ.get('AA_DISCOURSE_API_USERNAME', '')
 DISCOURSE_API_KEY = os.environ.get('AA_DISCOURSE_API_KEY', '')
+
 
 #####################################
 # IPS4 Configuration

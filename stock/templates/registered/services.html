@@ -18,7 +18,7 @@
             <br>
         {% endif %}
     {% endif %}
-    {% if perms.auth.blue_member %}
+    {% if STATE == BLUE_STATE %}
         <table class="table table-bordered">
             <tr>
                 <th class="text-center">{% trans "Service" %}</th>
@@ -343,7 +343,7 @@
                 </tr>
             {% endif %}
         </table>
-    {% elif perms.auth.member %}
+    {% elif STATE == MEMBER_STATE or user.is_superuser %}
         <table class="table table-bordered">
             <tr>
                 <th class="text-center">{% trans "Service" %}</th>

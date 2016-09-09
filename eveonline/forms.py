@@ -4,6 +4,7 @@ from django.conf import settings
 from services.managers.eve_api_manager import EveApiManager
 from eveonline.managers import EveManager
 from eveonline.models import EveCharacter
+from authentication.states import MEMBER_STATE, BLUE_STATE, NONE_STATE
 import evelink
 
 from celerytask.tasks import determine_membership_by_character
@@ -50,10 +51,10 @@ class UpdateKeyForm(forms.Form):
                     logger.debug("API ID %s character %s has state %s" % (self.cleaned_data['api_id'], evechar, state))
                     states.append(state)
 
-                if 'MEMBER' in states:
+                if MEMBER_STATE in states:
                     if EveApiManager.validate_member_api(self.cleaned_data['api_id'], self.cleaned_data['api_key']) is False:
                         raise forms.ValidationError(u'API must meet member requirements')
-                if 'BLUE' in states:
+                if BLUE_STATE in states:
                     if EveApiManager.validate_blue_api(self.cleaned_data['api_id'], self.cleaned_data['api_key']) is False:
                         raise forms.ValidationError(u'API must meet blue requirements')
                 return self.cleaned_data

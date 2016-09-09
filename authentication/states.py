@@ -1,0 +1,3 @@
+MEMBER_STATE = 'Member'
+BLUE_STATE = 'Blue'
+NONE_STATE = None
