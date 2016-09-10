@@ -32,3 +32,6 @@ class Notification(models.Model):
 
     def set_level(self, level):
         self.level = [item[0] for item in self.LEVEL_CHOICES if item[1] == level][0]
+
+    class Meta:
+        ordering = ['-timestamp']

@@ -133,6 +133,8 @@ urlpatterns = [
 
                        # Notifications
                        url(r'^remove_notifications/(\w+)/$', notifications.views.remove_notification, name='auth_remove_notification'),
+                       url(r'^notifications/mark_all_read/$', notifications.views.mark_all_read, name='auth_mark_all_notifications_read'),
+                       url(r'^notifications/delete_all_read/$', notifications.views.delete_all_read, name='auth_delete_all_read_notifications'),
 ]
 
 # User viewed/translated URLS
