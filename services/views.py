@@ -525,12 +525,6 @@ def reset_teamspeak3_perm(request):
     return redirect("/")
 
 @login_required
-def fleet_fits(request):
-    logger.debug("fleet_fits called by user %s" % request.user)
-    context = {}
-    return render(request, 'registered/fleetfits.html', context=context)
-
-@login_required
 @members_and_blues()
 def deactivate_discord(request):
     logger.debug("deactivate_discord called by user %s" % request.user)

@@ -145,9 +145,6 @@ urlpatterns += i18n_patterns(
                        url(r'^corputils/search/$', corputils.views.corputils_search, name="auth_corputils_search"),
                        url(r'^corputils/search/(?P<corpid>[0-9]+)/$', corputils.views.corputils_search),
 
-                       # FLEET FITTINGS
-                       url(r'^fits/$', services.views.fleet_fits, name='auth_fleet_fits'),
-                       
                        #Fleetup
                        url(r'^fleetup/$', fleetup.views.fleetup_view, name='auth_fleetup_view'),
                        url(r'^fleetup/fittings/$', fleetup.views.fleetup_fittings, name='auth_fleetup_fittings'),
