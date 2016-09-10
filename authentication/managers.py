@@ -42,62 +42,57 @@ class AuthServicesInfoManager:
             logger.error("Failed to update user %s main character id to %s: user does not exist." % (user, char_id))
 
     @staticmethod
-    def update_user_forum_info(username, password, user):
+    def update_user_forum_info(username, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s forum info: username %s" % (user, username))
             authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
             authserviceinfo.forum_username = username
-            authserviceinfo.forum_password = password
-            authserviceinfo.save(update_fields=['forum_username', 'forum_password'])
+            authserviceinfo.save(update_fields=['forum_username'])
             logger.info("Updated user %s forum info in authservicesinfo model." % user)
         else:
             logger.error("Failed to update user %s forum info: user does not exist." % user)
 
     @staticmethod
-    def update_user_jabber_info(username, password, user):
+    def update_user_jabber_info(username, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s jabber info: username %s" % (user, username))
             authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
             authserviceinfo.jabber_username = username
-            authserviceinfo.jabber_password = password
-            authserviceinfo.save(update_fields=['jabber_username', 'jabber_password'])
+            authserviceinfo.save(update_fields=['jabber_username'])
             logger.info("Updated user %s jabber info in authservicesinfo model." % user)
         else:
             logger.error("Failed to update user %s jabber info: user does not exist." % user)
 
 
     @staticmethod
-    def update_user_mumble_info(username, password, user):
+    def update_user_mumble_info(username, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s mumble info: username %s" % (user, username))
             authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
             authserviceinfo.mumble_username = username
-            authserviceinfo.mumble_password = password
-            authserviceinfo.save(update_fields=['mumble_username', 'mumble_password'])
+            authserviceinfo.save(update_fields=['mumble_username'])
             logger.info("Updated user %s mumble info in authservicesinfo model." % user)
         else:
             logger.error("Failed to update user %s mumble info: user does not exist." % user)
 
     @staticmethod
-    def update_user_ipboard_info(username, password, user):
+    def update_user_ipboard_info(username, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s ipboard info: uername %s" % (user, username))
             authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
             authserviceinfo.ipboard_username = username
-            authserviceinfo.ipboard_password = password
-            authserviceinfo.save(update_fields=['ipboard_username', 'ipboard_password'])
+            authserviceinfo.save(update_fields=['ipboard_username'])
             logger.info("Updated user %s ipboard info in authservicesinfo model." % user)
         else:
             logger.error("Failed to update user %s ipboard info: user does not exist." % user)
 
     @staticmethod
-    def update_user_xenforo_info(username, password, user):
+    def update_user_xenforo_info(username, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s xenforo info: uername %s" % (user, username))
             authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
             authserviceinfo.xenforo_username = username
-            authserviceinfo.xenforo_password = password
-            authserviceinfo.save(update_fields=['xenforo_username', 'xenforo_password'])
+            authserviceinfo.save(update_fields=['xenforo_username'])
             logger.info("Updated user %s xenforo info in authservicesinfo model." % user)
         else:
             logger.error("Failed to update user %s xenforo info: user does not exist." % user)
@@ -135,50 +130,46 @@ class AuthServicesInfoManager:
             logger.error("Failed to update user %s discord info: user does not exist." % user)
             
     @staticmethod
-    def update_user_discourse_info(username, password, user):
+    def update_user_discourse_info(username, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s discourse info: username %s" % (user, username))
             authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
             authserviceinfo.discourse_username = username
-            authserviceinfo.discourse_password = password
-            authserviceinfo.save(update_fields=['discourse_username', 'discourse_password'])
+            authserviceinfo.save(update_fields=['discourse_username'])
             logger.info("Updated user %s discourse info in authservicesinfo model." % user)
         else:
             logger.error("Failed to update user %s discourse info: user does not exist." % user)
 
     @staticmethod
-    def update_user_ips4_info(username, password, id, user):
+    def update_user_ips4_info(username, id, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s IPS4 info: username %s" % (user, username))
             authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
             authserviceinfo.ips4_username = username
-            authserviceinfo.ips4_password = password
             authserviceinfo.ips4_id = id
-            authserviceinfo.save(update_fields=['ips4_username', 'ips4_password', 'ips4_id'])
+            authserviceinfo.save(update_fields=['ips4_username', 'ips4_id'])
             logger.info("Updated user %s IPS4 info in authservicesinfo model." % user)
         else:
             logger.error("Failed to update user %s IPS4 info: user does not exist." % user)
 
     @staticmethod
-    def update_user_smf_info(username, password, user):
+    def update_user_smf_info(username, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s forum info: username %s" % (user, username))
             authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
             authserviceinfo.smf_username = username
-            authserviceinfo.smf_password = password
-            authserviceinfo.save(update_fields=['smf_username', 'smf_password'])
+            authserviceinfo.save(update_fields=['smf_username'])
             logger.info("Updated user %s smf info in authservicesinfo model." % user)
         else:
             logger.error("Failed to update user %s smf info: user does not exist." % user)
 
     @staticmethod
-    def update_user_market_info(username, password, user):
+    def update_user_market_info(username, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s market info: username %s" % (user, username))
             authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
             authserviceinfo.market_username = username
-            authserviceinfo.market_password = password
-            authserviceinfo.save(update_fields=['market_username', 'market_password'])
+            authserviceinfo.save(update_fields=['market_username'])
             logger.info("Updated user %s market info in authservicesinfo model." % user)
         else:
             logger.error("Failed to update user %s market info: user does not exist." % user)

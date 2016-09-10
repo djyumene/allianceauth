@@ -22,7 +22,6 @@
             <tr>
                 <th class="text-center">{% trans "Service" %}</th>
                 <th class="text-center">{% trans "Username" %}</th>
-                <th class="text-center">{% trans "Password" %}</th>
                 <th class="text-center">{% trans "Domain" %}</th>
                 <th class="text-center">{% trans "Action" %}</th>
             </tr>
@@ -30,7 +29,6 @@
                 <tr>
                     <td class="text-center">Forums</td>
                     <td class="text-center">{{ authinfo.forum_username }}</td>
-                    <td class="text-center">{{ authinfo.forum_password }}</td>
                     <td class="text-center"><a href="{{ FORUM_URL }}">{{ FORUM_URL }}</a></td>
                     <td class="text-center">
                         {% ifequal authinfo.forum_username "" %}
@@ -59,7 +57,6 @@
                 <tr>
                     <td class="text-center">SMF Forums</td>
                     <td class="text-center">{{ authinfo.smf_username }}</td>
-                    <td class="text-center">{{ authinfo.smf_password }}</td>
                     <td class="text-center"><a href="{{ SMF_URL }}">{{ SMF_URL }}</a></td>
                     <td class="text-center">
                         {% ifequal authinfo.smf_username "" %}
@@ -88,7 +85,6 @@
                 <tr>
                 <td class="text-center">IPBoard Forums</td>
                 <td class="text-center">{{ authinfo.ipboard_username }}</td>
-                <td class="text-center">{{ authinfo.ipboard_password }}</td>
                 <td class="text-center"><a href="{{ FORUM_URL }}">{{ FORUM_URL }}</a></td>
                 <td class="text-center">
                     {% ifequal authinfo.ipboard_username "" %}
@@ -117,7 +113,6 @@
                 <tr>
                 <td class="text-center">XenForo Forums</td>
                 <td class="text-center">{{ authinfo.xenforo_username }}</td>
-                <td class="text-center">{{ authinfo.xenforo_password }}</td>
                 <td class="text-center"><a href="{{ FORUM_URL }}">{{ FORUM_URL }}</a></td>
                 <td class="text-center">
                     {% ifequal authinfo.xenforo_username "" %}
@@ -146,7 +141,6 @@
                 <tr>
                 <td class="text-center">Alliance Market</td>
                 <td class="text-center">{{ authinfo.market_username }}</td>
-                <td class="text-center">{{ authinfo.market_password }}</td>
                 <td class="text-center"><a href="{{ MARKET_URL }}">{{ MARKET_URL }}</a></td>
                 <td class="text-center">
                     {% ifequal authinfo.market_username "" %}
@@ -175,7 +169,6 @@
                 <tr>
                     <td class="text-center">Jabber</td>
                     <td class="text-center">{{ authinfo.jabber_username }}</td>
-                    <td class="text-center">{{ authinfo.jabber_password }}</td>
                     <td class="text-center">{{ JABBER_URL }}</td>
                     <td class="text-center">
                         {% ifequal authinfo.jabber_username "" %}
@@ -204,7 +197,6 @@
                 <tr>
                     <td class="text-center">Mumble</td>
                     <td class="text-center">{{ authinfo.mumble_username }}</td>
-                    <td class="text-center">{{ authinfo.mumble_password }}</td>
                     <td class="text-center">{{ MUMBLE_URL }}</td>
                     <td class="text-center">
                         {% ifequal authinfo.mumble_username "" %}
@@ -232,7 +224,6 @@
             {% if SHOW_IPS4 %}
                 <td class="text-center">IPS4</td>
                 <td class="text-center">{{ authinfo.ips4_username }}</td>
-                <td class="text-center">{{ authinfo.ips4_password }}</td>
                 <td class="text-center"><a href="{{ IPS4_URL }}">{{ IPS4_URL }}</a></td>
                 <td class="text-center">
                     {% ifequal authinfo.ips4_username "" %}
@@ -284,7 +275,6 @@
             {% if SHOW_DISCOURSE %}
                 <td class="text-center">Discourse</td>
                 <td class="text-center">{{ authinfo.discourse_username }}</td>
-                <td class="text-center">{{ authinfo.discourse_password }}</td>
                 <td class="text-center"><a href="{{ DISCOURSE_URL }}">{{ DISCOURSE_URL }}</a></td>
                 <td class="text-center">
                     {% ifequal authinfo.discourse_username "" %}

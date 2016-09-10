@@ -161,11 +161,16 @@ def activate_forum(request):
     result = Phpbb3Manager.add_user(character.character_name, request.user.email, ['REGISTERED'], authinfo.main_char_id)
     # if empty we failed
     if result[0] != "":
-        AuthServicesInfoManager.update_user_forum_info(result[0], result[1], request.user)
+        AuthServicesInfoManager.update_user_forum_info(result[0], request.user)
         logger.debug("Updated authserviceinfo for user %s with forum credentials. Updating groups." % request.user)
         update_forum_groups.delay(request.user.pk)
         logger.info("Succesfully activated forum for user %s" % request.user)
         messages.success(request, 'Activated forum account.')
+        credentials = {
+            'username': result[0],
+            'password': result[1],
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'Forum'})
     else:
         logger.error("Unsuccesful attempt to activate forum for user %s" % request.user)
         messages.error(request, 'An error occured while processing your forum account.')
@@ -180,7 +185,7 @@ def deactivate_forum(request):
     result = Phpbb3Manager.disable_user(authinfo.forum_username)
     # false we failed
     if result:
-        AuthServicesInfoManager.update_user_forum_info("", "", request.user)
+        AuthServicesInfoManager.update_user_forum_info("", request.user)
         logger.info("Succesfully deactivated forum for user %s" % request.user)
         messages.success(request, 'Deactivated forum account.')
     else:
@@ -197,9 +202,13 @@ def reset_forum_password(request):
     result = Phpbb3Manager.update_user_password(authinfo.forum_username, authinfo.main_char_id)
     # false we failed
     if result != "":
-        AuthServicesInfoManager.update_user_forum_info(authinfo.forum_username, result, request.user)
         logger.info("Succesfully reset forum password for user %s" % request.user)
         messages.success(request, 'Reset forum password.')
+        credentials = {
+            'username': authinfo.forum_username,
+            'password': result,
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'Forum'})
     else:
         logger.error("Unsuccessful attempt to reset forum password for user %s" % request.user)
         messages.error(request, 'An error occured while processing your forum account.')
@@ -216,8 +225,14 @@ def activate_xenforo_forum(request):
     # Based on XenAPI's response codes
     if result['response']['status_code'] == 200:
         logger.info("Updated authserviceinfo for user %s with XenForo credentials. Updating groups." % request.user)
-        AuthServicesInfoManager.update_user_xenforo_info(result['username'], result['password'], request.user)
+        AuthServicesInfoManager.update_user_xenforo_info(result['username'], request.user)
         messages.success(request, 'Activated XenForo account.')
+        credentials = {
+            'username': result['username'],
+            'password': result['password'],
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'XenForo'})
+
     else:
         logger.error("Unsuccesful attempt to activate xenforo for user %s" % request.user)
         messages.error(request, 'An error occured while processing your XenForo account.')
@@ -230,7 +245,7 @@ def deactivate_xenforo_forum(request):
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
     result = XenForoManager.disable_user(authinfo.xenforo_username)
     if result.status_code == 200:
-        AuthServicesInfoManager.update_user_xenforo_info("", "", request.user)
+        AuthServicesInfoManager.update_user_xenforo_info("", request.user)
         logger.info("Succesfully deactivated XenForo for user %s" % request.user)
         messages.success(request, 'Deactivated XenForo account.')
     else:
@@ -246,9 +261,13 @@ def reset_xenforo_password(request):
     result = XenForoManager.reset_password(authinfo.xenforo_username)
     # Based on XenAPI's response codes
     if result['response']['status_code'] == 200:
-        AuthServicesInfoManager.update_user_xenforo_info(authinfo.xenforo_username, result['password'], request.user)
         logger.info("Succesfully reset XenForo password for user %s" % request.user)
         messages.success(request, 'Reset XenForo account password.')
+        credentials = {
+            'username': authinfo.xenforo_username,
+            'password': result['password'],
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'XenForo'})
     else:
         logger.error("Unsuccessful attempt to reset XenForo password for user %s" % request.user)
         messages.error(request, 'An error occured while processing your XenForo account.')
@@ -269,7 +288,6 @@ def set_xenforo_password(request):
             authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
             result = XenForoManager.update_user_password(authinfo.xenforo_username, password)
             if result['response']['status_code'] == 200:
-                AuthServicesInfoManager.update_user_xenforo_info(authinfo.xenforo_username, result['password'], request.user)
                 logger.info("Succesfully reset XenForo password for user %s" % request.user)
                 messages.success(request, 'Changed XenForo password.')
                 return redirect("/services/")
@@ -294,11 +312,16 @@ def activate_ipboard_forum(request):
     logger.debug("Adding ipboard user for user %s with main character %s" % (request.user, character))
     result = IPBoardManager.add_user(character.character_name, request.user.email)
     if result[0] != "":
-        AuthServicesInfoManager.update_user_ipboard_info(result[0], result[1], request.user)
+        AuthServicesInfoManager.update_user_ipboard_info(result[0], request.user)
         logger.debug("Updated authserviceinfo for user %s with ipboard credentials. Updating groups." % request.user)
         update_ipboard_groups.delay(request.user.pk)
         logger.info("Succesfully activated ipboard for user %s" % request.user)
         messages.success(request, 'Activated IPBoard account.')
+        credentials = {
+            'username': result[0],
+            'password': result[1],
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'IPBoard'})
     else:
         logger.error("Unsuccesful attempt to activate ipboard for user %s" % request.user)
         messages.error(request, 'An error occured while processing your IPBoard account.')
@@ -313,7 +336,7 @@ def deactivate_ipboard_forum(request):
     result = IPBoardManager.disable_user(authinfo.ipboard_username)
     # false we failed
     if result:
-        AuthServicesInfoManager.update_user_ipboard_info("", "", request.user)
+        AuthServicesInfoManager.update_user_ipboard_info("", request.user)
         logger.info("Succesfully deactivated ipboard for user %s" % request.user)
         messages.success(request, 'Deactivated IPBoard account.')
     else:
@@ -329,9 +352,13 @@ def reset_ipboard_password(request):
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
     result = IPBoardManager.update_user_password(authinfo.ipboard_username, request.user.email)
     if result != "":
-        AuthServicesInfoManager.update_user_ipboard_info(authinfo.ipboard_username, result, request.user)
         logger.info("Succesfully reset ipboard password for user %s" % request.user)
         messages.success(request, 'Reset IPBoard password.')
+        credentials = {
+            'username': authinfo.ipboard_username,
+            'password': result,
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'IPBoard'})
     else:
         logger.error("Unsuccesful attempt to reset ipboard password for user %s" % request.user)
         messages.error(request, 'An error occured while processing your IPBoard account.')
@@ -348,11 +375,16 @@ def activate_jabber(request):
     info = OpenfireManager.add_user(character.character_name)
     # If our username is blank means we already had a user
     if info[0] is not "":
-        AuthServicesInfoManager.update_user_jabber_info(info[0], info[1], request.user)
+        AuthServicesInfoManager.update_user_jabber_info(info[0], request.user)
         logger.debug("Updated authserviceinfo for user %s with jabber credentials. Updating groups." % request.user)
         update_jabber_groups.delay(request.user.pk)
         logger.info("Succesfully activated jabber for user %s" % request.user)
         messages.success(request, 'Activated jabber account.')
+        credentials = {
+            'username': info[0],
+            'password': info[1],
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'Jabber'})
     else:
         logger.error("Unsuccesful attempt to activate jabber for user %s" % request.user)
         messages.error(request, 'An error occured while processing your jabber account.')
@@ -367,7 +399,7 @@ def deactivate_jabber(request):
     result = OpenfireManager.delete_user(authinfo.jabber_username)
     # If our username is blank means we failed
     if result:
-        AuthServicesInfoManager.update_user_jabber_info("", "", request.user)
+        AuthServicesInfoManager.update_user_jabber_info("", request.user)
         logger.info("Succesfully deactivated jabber for user %s" % request.user)
         messages.success(request, 'Deactivated jabber account.')
     else:
@@ -384,9 +416,14 @@ def reset_jabber_password(request):
     result = OpenfireManager.update_user_pass(authinfo.jabber_username)
     # If our username is blank means we failed
     if result != "":
-        AuthServicesInfoManager.update_user_jabber_info(authinfo.jabber_username, result, request.user)
+        AuthServicesInfoManager.update_user_jabber_info(authinfo.jabber_username, request.user)
         logger.info("Succesfully reset jabber password for user %s" % request.user)
         messages.success(request, 'Reset jabber password.')
+        credentials = {
+            'username': authinfo.jabber_username,
+            'password': result,
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'Jabber'})
     else:
         logger.error("Unsuccessful attempt to reset jabber for user %s" % request.user)
         messages.error(request, 'An error occured while processing your jabber account.')
@@ -413,11 +450,16 @@ def activate_mumble(request):
         result = MumbleManager.create_user(ticker, character.character_name)
     # if its empty we failed
     if result[0] is not "":
-        AuthServicesInfoManager.update_user_mumble_info(result[0], result[1], request.user)
+        AuthServicesInfoManager.update_user_mumble_info(result[0], request.user)
         logger.debug("Updated authserviceinfo for user %s with mumble credentials. Updating groups." % request.user)
         update_mumble_groups.delay(request.user.pk)
         logger.info("Succesfully activated mumble for user %s" % request.user)
         messages.success(request, 'Activated Mumble account.')
+        credentials = {
+            'username': result[0],
+            'password': result[1],
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'Mumble'})
     else:
         logger.error("Unsuccessful attempt to activate mumble for user %s" % request.user)
         messages.error(request, 'An error occured while processing your Mumble account.')
@@ -432,7 +474,7 @@ def deactivate_mumble(request):
     result = MumbleManager.delete_user(authinfo.mumble_username)
     # if false we failed
     if result:
-        AuthServicesInfoManager.update_user_mumble_info("", "", request.user)
+        AuthServicesInfoManager.update_user_mumble_info("", request.user)
         logger.info("Succesfully deactivated mumble for user %s" % request.user)
         messages.success(request, 'Deactivated Mumble account.')
     else:
@@ -450,9 +492,13 @@ def reset_mumble_password(request):
 
     # if blank we failed
     if result != "":
-        AuthServicesInfoManager.update_user_mumble_info(authinfo.mumble_username, result, request.user)
         logger.info("Succesfully reset mumble password for user %s" % request.user)
         messages.success(request, 'Reset Mumble password.')
+        credentials = {
+            'username': authinfo.mumble_username,
+            'password': result,
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'Mumble'})
     else:
         logger.error("Unsuccesful attempt to reset mumble password for user %s" % request.user)
         messages.error(request, 'An error occured while processing your Mumble account.')
@@ -635,7 +681,6 @@ def set_forum_password(request):
             authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
             result = Phpbb3Manager.update_user_password(authinfo.forum_username, authinfo.main_char_id, password=password)
             if result != "":
-                AuthServicesInfoManager.update_user_forum_info(authinfo.forum_username, result, request.user)
                 logger.info("Succesfully set forum password for user %s" % request.user)
                 messages.success('Set forum password.')
             else:
@@ -665,7 +710,6 @@ def set_mumble_password(request):
             authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
             result = MumbleManager.update_user_password(authinfo.mumble_username, password=password)
             if result != "":
-                AuthServicesInfoManager.update_user_mumble_info(authinfo.mumble_username, result, request.user)
                 logger.info("Succesfully reset forum password for user %s" % request.user)
                 messages.success(request, 'Set Mumble password.')
             else:
@@ -695,7 +739,6 @@ def set_jabber_password(request):
             authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
             result = OpenfireManager.update_user_pass(authinfo.jabber_username, password=password)
             if result != "":
-                AuthServicesInfoManager.update_user_jabber_info(authinfo.jabber_username, result, request.user)
                 logger.info("Succesfully set jabber password for user %s" % request.user)
                 messages.success(request, 'Set jabber password.')
             else:
@@ -725,7 +768,6 @@ def set_ipboard_password(request):
             authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
             result = IPBoardManager.update_user_password(authinfo.ipboard_username, request.user.email, plain_password=password)
             if result != "":
-                AuthServicesInfoManager.update_user_ipboard_info(authinfo.ipboard_username, result, request.user)
                 logger.info("Succesfully set IPBoard password for user %s" % request.user)
                 messages.success(request, 'Set IPBoard password.')
             else:
@@ -749,11 +791,17 @@ def activate_discourse(request):
     logger.debug("Adding discourse user for user %s with main character %s" % (request.user, character))
     result = DiscourseManager.add_user(character.character_name, request.user.email)
     if result[0] != "":
-        AuthServicesInfoManager.update_user_discourse_info(result[0], result[1], request.user)
+        AuthServicesInfoManager.update_user_discourse_info(result[0], request.user)
         logger.debug("Updated authserviceinfo for user %s with discourse credentials. Updating groups." % request.user)
         update_discourse_groups.delay(request.user.pk)
         logger.info("Successfully activated discourse for user %s" % request.user)
         messages.success('Activated Discourse account.')
+        messages.warning('Do not lose your Discourse password. It cannot be reset through auth.')
+        credentials = {
+            'username': result[0],
+            'password': result[1],
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'Discourse'})
     else:
         logger.error("Unsuccessful attempt to activate forum for user %s" % request.user)
         messages.error(request, 'An error occured while processing your Discourse account.')
@@ -767,7 +815,7 @@ def deactivate_discourse(request):
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
     result = DiscourseManager.delete_user(authinfo.discourse_username)
     if result:
-        AuthServicesInfoManager.update_user_discourse_info("", "", request.user)
+        AuthServicesInfoManager.update_user_discourse_info("", request.user)
         logger.info("Successfully deactivated discourse for user %s" % request.user)
         messages.success('Deactivated Discourse account.')
     else:
@@ -786,11 +834,16 @@ def activate_ips4(request):
     result = Ips4Manager.add_user(character.character_name, request.user.email)
     # if empty we failed
     if result[0] != "":
-        AuthServicesInfoManager.update_user_ips4_info(result[0], result[1], result[2], request.user)
+        AuthServicesInfoManager.update_user_ips4_info(result[0], result[2], request.user)
         logger.debug("Updated authserviceinfo for user %s with IPS4 credentials." % request.user)
         #update_ips4_groups.delay(request.user.pk)
         logger.info("Succesfully activated IPS4 for user %s" % request.user)
         messages.success(request, 'Activated IPSuite4 account.')
+        credentials = {
+            'username': result[0],
+            'password': result[1],
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'IPSuite4'})
     else:
         logger.error("Unsuccesful attempt to activate IPS4 for user %s" % request.user)
         messages.error(request, 'An error occured while processing your IPSuite4 account.')
@@ -805,9 +858,13 @@ def reset_ips4_password(request):
     member_id = Ips4Manager.get_user_id(authinfo.ips4_username)
     # false we failed
     if result != "":
-        AuthServicesInfoManager.update_user_ips4_info(authinfo.ips4_username, result, member_id, request.user)
         logger.info("Succesfully reset IPS4 password for user %s" % request.user)
         messages.success(request, 'Reset IPSuite4 password.')
+        credentials = {
+            'username': authinfo.ips4_username,
+            'password': result,
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'IPSuite4'})
     else:
         logger.error("Unsuccessful attempt to reset IPS4 password for user %s" % request.user)
         messages.error(request, 'An error occured while processing your IPSuite4 account.')
@@ -829,7 +886,6 @@ def set_ips4_password(request):
             result = Ips4Manager.update_custom_password(authinfo.ips4_username, plain_password=password)
             member_id = Ips4Manager.get_user_id(authinfo.ips4_username)
             if result != "":
-                AuthServicesInfoManager.update_user_ips4_info(authinfo.ips4_username, result, member_id, request.user)
                 logger.info("Succesfully set IPS4 password for user %s" % request.user)
                 messages.success(request, 'Set IPSuite4 password.')
             else:
@@ -851,7 +907,7 @@ def deactivate_ips4(request):
     authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
     result = Ips4Manager.delete_user(authinfo.ips4_id)
     if result != "":
-        AuthServicesInfoManager.update_user_ips4_info("", "", "", request.user)
+        AuthServicesInfoManager.update_user_ips4_info("", "", request.user)
         logger.info("Succesfully deactivated IPS4 for user %s" % request.user)
         messages.success(request, 'Deactivated IPSuite4 account.')
     else:
@@ -870,11 +926,16 @@ def activate_smf(request):
     result = smfManager.add_user(character.character_name, request.user.email, ['Member'], authinfo.main_char_id)
     # if empty we failed
     if result[0] != "":
-        AuthServicesInfoManager.update_user_smf_info(result[0], result[1], request.user)
+        AuthServicesInfoManager.update_user_smf_info(result[0], request.user)
         logger.debug("Updated authserviceinfo for user %s with smf credentials. Updating groups." % request.user)
         update_smf_groups.delay(request.user.pk)
         logger.info("Succesfully activated smf for user %s" % request.user)
         messages.success(request, 'Activated SMF account.')
+        credentials = {
+            'username': result[0],
+            'password': result[1],
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'SMF'})
     else:
         logger.error("Unsuccesful attempt to activate smf for user %s" % request.user)
         messages.error(request, 'An error occured while processing your SMF account.')
@@ -889,7 +950,7 @@ def deactivate_smf(request):
     result = smfManager.disable_user(authinfo.smf_username)
     # false we failed
     if result:
-        AuthServicesInfoManager.update_user_smf_info("", "", request.user)
+        AuthServicesInfoManager.update_user_smf_info("", request.user)
         logger.info("Succesfully deactivated smf for user %s" % request.user)
         messages.success(request, 'Deactivated SMF account.')
     else:
@@ -906,9 +967,13 @@ def reset_smf_password(request):
     result = smfManager.update_user_password(authinfo.smf_username, authinfo.main_char_id)
     # false we failed
     if result != "":
-        AuthServicesInfoManager.update_user_smf_info(authinfo.smf_username, result, request.user)
         logger.info("Succesfully reset smf password for user %s" % request.user)
         messages.success(request, 'Reset SMF password.')
+        credentials = {
+            'username': authinfo.smf_username,
+            'password': result,
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'SMF'})
     else:
         logger.error("Unsuccessful attempt to reset smf password for user %s" % request.user)
         messages.error(request, 'An error occured while processing your SMF account.')
@@ -929,7 +994,6 @@ def set_smf_password(request):
             authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
             result = smfManager.update_user_password(authinfo.smf_username, authinfo.main_char_id, password=password)
             if result != "":
-                AuthServicesInfoManager.update_user_smf_info(authinfo.smf_username, result, request.user)
                 logger.info("Succesfully set smf password for user %s" % request.user)
                 messages.success(request, 'Set SMF password.')
             else:
@@ -955,10 +1019,15 @@ def activate_market(request):
     result = marketManager.add_user(character.character_name, request.user.email, authinfo.main_char_id, character.character_name)
     # if empty we failed
     if result[0] != "":
-        AuthServicesInfoManager.update_user_market_info(result[0], result[1], request.user)
+        AuthServicesInfoManager.update_user_market_info(result[0], request.user)
         logger.debug("Updated authserviceinfo for user %s with market credentials." % request.user)
         logger.info("Succesfully activated market for user %s" % request.user)
         messages.success(request, 'Activated Alliance Market account.')
+        credentials = {
+            'username': result[0],
+            'password': result[1],
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'Alliance Market'})
     else:
         logger.error("Unsuccesful attempt to activate market for user %s" % request.user)
         messages.error(request, 'An error occured while processing your Alliance Market account.')
@@ -973,7 +1042,7 @@ def deactivate_market(request):
     result = marketManager.disable_user(authinfo.market_username)
     # false we failed
     if result:
-        AuthServicesInfoManager.update_user_market_info("", "", request.user)
+        AuthServicesInfoManager.update_user_market_info("", request.user)
         logger.info("Succesfully deactivated market for user %s" % request.user)
         messages.success(request, 'Deactivated Alliance Market account.')
     else:
@@ -990,13 +1059,17 @@ def reset_market_password(request):
     result = marketManager.update_user_password(authinfo.market_username)
     # false we failed
     if result != "":
-        AuthServicesInfoManager.update_user_market_info(authinfo.market_username, result, request.user)
         logger.info("Succesfully reset market password for user %s" % request.user)
         messages.success(request, 'Reset Alliance Market password.')
+        credentials = {
+            'username': authinfo.market_username,
+            'password': result,
+        }
+        return render(request, 'registered/service_credentials.html', context={'credentials':credentials,'service': 'Alliance Market'})
     else:
         logger.error("Unsuccessful attempt to reset market password for user %s" % request.user)
         messages.error(request, 'An error occured while processing your Alliance Market account.')
-    return redirect("/dashboard")
+    return redirect("/services")
 
 @login_required
 @members_and_blues()
@@ -1013,7 +1086,6 @@ def set_market_password(request):
             authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
             result = marketManager.update_custom_password(authinfo.market_username, password)
             if result != "":
-                AuthServicesInfoManager.update_user_market_info(authinfo.market_username, result, request.user)
                 logger.info("Succesfully reset market password for user %s" % request.user)
                 messages.success(request, 'Set Alliance Market password.')
             else:
