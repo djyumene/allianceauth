@@ -54,22 +54,23 @@
                 {% if error %}
                     <div class="alert alert-danger" role="alert">{% trans "Username/Password Invalid" %}</div>
                 {% endif %}
-                <a href="{% url 'auth_register_user' %}">
-                    <button class="btn btn- btn-success btn-block">{% trans "Register" %}</button>
-                </a>
-
                 <form class="form-signin" role="form" action="{% url 'auth_login_user' %}" method="POST">
                     {% csrf_token %}
                     <h2 class="form-signin-heading text-center">{% trans "Please sign in" %}</h2>
                     {{ form|bootstrap }}
-                    <div class="col-md-6">
+                    <div class="row">
+                    <div class="col-md-12">
                         <button class="btn btn-lg btn-primary btn-block" type="submit">{% trans "Sign in" %}</button>
                     </div>
+                    </div>
                 </form>
+                <div class="row">
                 <div class="col-md-6">
-                    <a href="{% url 'password_reset' %}">
-                        <button class="btn btn-lg btn-danger btn-block">{% trans "Reset" %}</button>
-                    </a>
+                    <a href="{% url 'password_reset' %}" class="btn btn-lg btn-danger btn-block">{% trans "Reset" %}</a>
+                </div>
+                <div class="col-md-6">
+                    <a href="{% url 'auth_register_user' %}" class="btn btn-success btn-block btn-lg">{% trans "Register" %}</a>
+                </div>
                 </div>
             </div>
         </div>
