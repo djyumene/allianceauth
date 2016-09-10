@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group
 from django.conf import settings
-
+from django.contrib import messages
 from eveonline.models import EveCharacter
 from eveonline.models import EveAllianceInfo
 from authentication.models import AuthServicesInfo
@@ -108,14 +108,14 @@ def jabber_broadcast_view(request):
 
                 OpenfireManager.send_broadcast_threaded(group_to_send, message_to_send,)
 
-            success = True
+            messages.success(request, 'Sent jabber broadcast to ' % group_to_send)
             logger.info("Sent jabber broadcast on behalf of user %s" % request.user)
     else:
         form = JabberBroadcastForm()
         form.fields['group'].choices = allchoices
         logger.debug("Generated broadcast form for user %s containing %s groups" % (request.user, len(form.fields['group'].choices)))
 
-    context = {'form': form, 'success': success}
+    context = {'form': form}
     return render(request, 'registered/jabberbroadcast.html', context=context)
 
 
@@ -165,9 +165,11 @@ def activate_forum(request):
         logger.debug("Updated authserviceinfo for user %s with forum credentials. Updating groups." % request.user)
         update_forum_groups.delay(request.user.pk)
         logger.info("Succesfully activated forum for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to activate forum for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Activated forum account.')
+    else:
+        logger.error("Unsuccesful attempt to activate forum for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your forum account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -180,9 +182,11 @@ def deactivate_forum(request):
     if result:
         AuthServicesInfoManager.update_user_forum_info("", "", request.user)
         logger.info("Succesfully deactivated forum for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to activate forum for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Deactivated forum account.')
+    else:
+        logger.error("Unsuccesful attempt to activate forum for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your forum account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -195,9 +199,11 @@ def reset_forum_password(request):
     if result != "":
         AuthServicesInfoManager.update_user_forum_info(authinfo.forum_username, result, request.user)
         logger.info("Succesfully reset forum password for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to reset forum password for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Reset forum password.')
+    else:
+        logger.error("Unsuccessful attempt to reset forum password for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your forum account.')
+    return redirect("/services/")
 
 @login_required
 @members_and_blues()
@@ -211,9 +217,11 @@ def activate_xenforo_forum(request):
     if result['response']['status_code'] == 200:
         logger.info("Updated authserviceinfo for user %s with XenForo credentials. Updating groups." % request.user)
         AuthServicesInfoManager.update_user_xenforo_info(result['username'], result['password'], request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to activate xenforo for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Activated XenForo account.')
+    else:
+        logger.error("Unsuccesful attempt to activate xenforo for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your XenForo account.')
+    return redirect("/services/")
 
 @login_required
 @members_and_blues()
@@ -224,8 +232,10 @@ def deactivate_xenforo_forum(request):
     if result.status_code == 200:
         AuthServicesInfoManager.update_user_xenforo_info("", "", request.user)
         logger.info("Succesfully deactivated XenForo for user %s" % request.user)
-        return redirect("/services/")
-    return redirect("/dashboard")
+        messages.success(request, 'Deactivated XenForo account.')
+    else:
+        messages.error(request, 'An error occured while processing your XenForo account.')
+    return redirect("/services/")
 
 @login_required
 @members_and_blues()
@@ -238,9 +248,11 @@ def reset_xenforo_password(request):
     if result['response']['status_code'] == 200:
         AuthServicesInfoManager.update_user_xenforo_info(authinfo.xenforo_username, result['password'], request.user)
         logger.info("Succesfully reset XenForo password for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to reset XenForo password for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Reset XenForo account password.')
+    else:
+        logger.error("Unsuccessful attempt to reset XenForo password for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your XenForo account.')
+    return redirect("/services/")
 
 @login_required
 @members_and_blues()
@@ -259,12 +271,11 @@ def set_xenforo_password(request):
             if result['response']['status_code'] == 200:
                 AuthServicesInfoManager.update_user_xenforo_info(authinfo.xenforo_username, result['password'], request.user)
                 logger.info("Succesfully reset XenForo password for user %s" % request.user)
+                messages.success(request, 'Changed XenForo password.')
                 return redirect("/services/")
             else:
                 logger.error("Failed to install custom XenForo password for user %s" % request.user)
-                error = "Failed to install custom password."
-        else:
-            error = "Invalid password provided"
+                messages.error(request, 'An error occured while processing your XenForo account.')
     else:
         logger.debug("Request is not type POST - providing empty form.")
         form = ServicePasswordForm()
@@ -287,9 +298,11 @@ def activate_ipboard_forum(request):
         logger.debug("Updated authserviceinfo for user %s with ipboard credentials. Updating groups." % request.user)
         update_ipboard_groups.delay(request.user.pk)
         logger.info("Succesfully activated ipboard for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to activate ipboard for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Activated IPBoard account.')
+    else:
+        logger.error("Unsuccesful attempt to activate ipboard for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your IPBoard account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -302,9 +315,11 @@ def deactivate_ipboard_forum(request):
     if result:
         AuthServicesInfoManager.update_user_ipboard_info("", "", request.user)
         logger.info("Succesfully deactivated ipboard for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to deactviate ipboard for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Deactivated IPBoard account.')
+    else:
+        logger.error("Unsuccessful attempt to deactviate ipboard for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your IPBoard account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -316,9 +331,11 @@ def reset_ipboard_password(request):
     if result != "":
         AuthServicesInfoManager.update_user_ipboard_info(authinfo.ipboard_username, result, request.user)
         logger.info("Succesfully reset ipboard password for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to reset ipboard password for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Reset IPBoard password.')
+    else:
+        logger.error("Unsuccesful attempt to reset ipboard password for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your IPBoard account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -335,9 +352,11 @@ def activate_jabber(request):
         logger.debug("Updated authserviceinfo for user %s with jabber credentials. Updating groups." % request.user)
         update_jabber_groups.delay(request.user.pk)
         logger.info("Succesfully activated jabber for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to activate jabber for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Activated jabber account.')
+    else:
+        logger.error("Unsuccesful attempt to activate jabber for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your jabber account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -350,9 +369,11 @@ def deactivate_jabber(request):
     if result:
         AuthServicesInfoManager.update_user_jabber_info("", "", request.user)
         logger.info("Succesfully deactivated jabber for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to deactivate jabber for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Deactivated jabber account.')
+    else:
+        logger.error("Unsuccesful attempt to deactivate jabber for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your jabber account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -365,9 +386,11 @@ def reset_jabber_password(request):
     if result != "":
         AuthServicesInfoManager.update_user_jabber_info(authinfo.jabber_username, result, request.user)
         logger.info("Succesfully reset jabber password for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to reset jabber for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Reset jabber password.')
+    else:
+        logger.error("Unsuccessful attempt to reset jabber for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your jabber account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -394,9 +417,11 @@ def activate_mumble(request):
         logger.debug("Updated authserviceinfo for user %s with mumble credentials. Updating groups." % request.user)
         update_mumble_groups.delay(request.user.pk)
         logger.info("Succesfully activated mumble for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to activate mumble for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Activated Mumble account.')
+    else:
+        logger.error("Unsuccessful attempt to activate mumble for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your Mumble account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -409,9 +434,11 @@ def deactivate_mumble(request):
     if result:
         AuthServicesInfoManager.update_user_mumble_info("", "", request.user)
         logger.info("Succesfully deactivated mumble for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to deactivate mumble for user %s" % request.user)
-    return redirect("/")
+        messages.success(request, 'Deactivated Mumble account.')
+    else:
+        logger.error("Unsuccessful attempt to deactivate mumble for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your Mumble account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -425,9 +452,11 @@ def reset_mumble_password(request):
     if result != "":
         AuthServicesInfoManager.update_user_mumble_info(authinfo.mumble_username, result, request.user)
         logger.info("Succesfully reset mumble password for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to reset mumble password for user %s" % request.user)
-    return redirect("/")
+        messages.success(request, 'Reset Mumble password.')
+    else:
+        logger.error("Unsuccesful attempt to reset mumble password for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your Mumble account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -454,9 +483,11 @@ def activate_teamspeak3(request):
         AuthServicesInfoManager.update_user_teamspeak3_info(result[0], result[1], request.user)
         logger.debug("Updated authserviceinfo for user %s with TS3 credentials. Updating groups." % request.user)
         logger.info("Succesfully activated TS3 for user %s" % request.user)
-        return redirect("/verify_teamspeak3/")
+        messages.success(request, 'Activated TeamSpeak3 account.')
+        return redirect("/verify_teamspeak/")
     logger.error("Unsuccessful attempt to activate TS3 for user %s" % request.user)
-    return redirect("/dashboard")
+    messages.error(request, 'An error occured while processing your TeamSpeak3 account.')
+    return redirect("/services")
 
 @login_required
 @members_and_blues()
@@ -491,9 +522,11 @@ def deactivate_teamspeak3(request):
     if result:
         AuthServicesInfoManager.update_user_teamspeak3_info("", "", request.user)
         logger.info("Succesfully deactivated TS3 for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to deactivate TS3 for user %s" % request.user)
-    return redirect("/")
+        messages.success(request, 'Deactivated TeamSpeak3 account.')
+    else:
+        logger.error("Unsuccessful attempt to deactivate TS3 for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your TeamSpeak3 account.')
+    return redirect("/services/")
 
 
 @login_required
@@ -520,9 +553,11 @@ def reset_teamspeak3_perm(request):
         logger.debug("Updated authserviceinfo for user %s with TS3 credentials. Updating groups." % request.user)
         update_teamspeak3_groups.delay(request.user)
         logger.info("Successfully reset TS3 permission key for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to reset TS3 permission key for user %s" % request.user)
-    return redirect("/")
+        messages.success(request, 'Reset TeamSpeak3 permission key.')
+    else:
+        logger.error("Unsuccessful attempt to reset TS3 permission key for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your TeamSpeak3 account.')
+    return redirect("/services/")
 
 @login_required
 @members_and_blues()
@@ -533,9 +568,11 @@ def deactivate_discord(request):
     if result:
         AuthServicesInfoManager.update_user_discord_info("", request.user)
         logger.info("Succesfully deactivated discord for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to deactivate discord for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Deactivated Discord account.')
+    else:
+        logger.error("Unsuccesful attempt to deactivate discord for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your Discord account.')
+    return redirect("/services/")
 
 @login_required
 @members_and_blues()
@@ -548,6 +585,7 @@ def reset_discord(request):
         logger.info("Succesfully deleted discord user for user %s - forwarding to discord activation." % request.user)
         return redirect("/activate_discord/")
     logger.error("Unsuccessful attempt to reset discord for user %s" % request.user)
+    messages.error(request, 'An error occured while processing your Discord account.')
     return redirect("/services/")
 
 @login_required
@@ -571,8 +609,10 @@ def discord_callback(request):
             update_discord_nickname.delay(request.user.pk)
         update_discord_groups.delay(request.user.pk)
         logger.info("Succesfully activated Discord for user %s" % request.user)
+        messages.success(request, 'Activated Discord account.')
     else:
         logger.error("Failed to activate Discord for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your Discord account.')
     return redirect("/services/")
 
 @login_required
@@ -596,13 +636,12 @@ def set_forum_password(request):
             result = Phpbb3Manager.update_user_password(authinfo.forum_username, authinfo.main_char_id, password=password)
             if result != "":
                 AuthServicesInfoManager.update_user_forum_info(authinfo.forum_username, result, request.user)
-                logger.info("Succesfully reset forum password for user %s" % request.user)
-                return redirect("/services/")
+                logger.info("Succesfully set forum password for user %s" % request.user)
+                messages.success('Set forum password.')
             else:
                 logger.error("Failed to install custom forum password for user %s" % request.user)
-                error = "Failed to install custom password."
-        else:
-            error = "Invalid password provided"
+                messages.error(request, 'An error occured while processing your forum account.')
+            return redirect("/services/")
     else:
         logger.debug("Request is not type POST - providing empty form.")
         form = ServicePasswordForm()
@@ -628,18 +667,17 @@ def set_mumble_password(request):
             if result != "":
                 AuthServicesInfoManager.update_user_mumble_info(authinfo.mumble_username, result, request.user)
                 logger.info("Succesfully reset forum password for user %s" % request.user)
-                return redirect("/services/")
+                messages.success(request, 'Set Mumble password.')
             else:
                 logger.error("Failed to install custom mumble password for user %s" % request.user)
-                error = "Failed to install custom password."
-        else:
-            error = "Invalid password provided"
+                messages.error(request, 'An error occured while processing your Mumble account.')
+            return redirect("/services/")
     else:
         logger.debug("Request is not type POST - providing empty form.")
         form = ServicePasswordForm()
 
     logger.debug("Rendering form for user %s" % request.user)
-    context = {'form': form, 'service': 'Mumble', 'error': error}
+    context = {'form': form, 'service': 'Mumble'}
     return render(request, 'registered/service_password.html', context=context)
 
 @login_required
@@ -658,19 +696,18 @@ def set_jabber_password(request):
             result = OpenfireManager.update_user_pass(authinfo.jabber_username, password=password)
             if result != "":
                 AuthServicesInfoManager.update_user_jabber_info(authinfo.jabber_username, result, request.user)
-                logger.info("Succesfully reset forum password for user %s" % request.user)
-                return redirect("/services/")
+                logger.info("Succesfully set jabber password for user %s" % request.user)
+                messages.success(request, 'Set jabber password.')
             else:
                 logger.error("Failed to install custom jabber password for user %s" % request.user)
-                error = "Failed to install custom password."
-        else:
-            error = "Invalid password provided"
+                messages.error(request, 'An error occured while processing your jabber account.')
+            return redirect("/services/")
     else:
         logger.debug("Request is not type POST - providing empty form.")
         form = ServicePasswordForm()
 
     logger.debug("Rendering form for user %s" % request.user)
-    context = {'form': form, 'service': 'Jabber', 'error': error}
+    context = {'form': form, 'service': 'Jabber'}
     return render(request, 'registered/service_password.html', context=context)
 
 @login_required
@@ -689,13 +726,12 @@ def set_ipboard_password(request):
             result = IPBoardManager.update_user_password(authinfo.ipboard_username, request.user.email, plain_password=password)
             if result != "":
                 AuthServicesInfoManager.update_user_ipboard_info(authinfo.ipboard_username, result, request.user)
-                logger.info("Succesfully reset forum password for user %s" % request.user)
-                return redirect("/services/")
+                logger.info("Succesfully set IPBoard password for user %s" % request.user)
+                messages.success(request, 'Set IPBoard password.')
             else:
                 logger.error("Failed to install custom ipboard password for user %s" % request.user)
-                error = "Failed to install custom password."
-        else:
-            error = "Invalid password provided"
+                messages.error(request, 'An error occured while processing your IPBoard account.')
+            return redirect("/services/")
     else:
         logger.debug("Request is not type POST - providing empty form.")
         form = ServicePasswordForm()
@@ -717,9 +753,11 @@ def activate_discourse(request):
         logger.debug("Updated authserviceinfo for user %s with discourse credentials. Updating groups." % request.user)
         update_discourse_groups.delay(request.user.pk)
         logger.info("Successfully activated discourse for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to activate forum for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success('Activated Discourse account.')
+    else:
+        logger.error("Unsuccessful attempt to activate forum for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your Discourse account.')
+    return redirect("/services")
 
 
 @login_required
@@ -731,9 +769,11 @@ def deactivate_discourse(request):
     if result:
         AuthServicesInfoManager.update_user_discourse_info("", "", request.user)
         logger.info("Successfully deactivated discourse for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to activate discourse for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success('Deactivated Discourse account.')
+    else:
+        logger.error("Unsuccessful attempt to activate discourse for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your Discourse account.')
+    return redirect("/services")
     
 @login_required
 @members_and_blues()
@@ -750,9 +790,11 @@ def activate_ips4(request):
         logger.debug("Updated authserviceinfo for user %s with IPS4 credentials." % request.user)
         #update_ips4_groups.delay(request.user.pk)
         logger.info("Succesfully activated IPS4 for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to activate IPS4 for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Activated IPSuite4 account.')
+    else:
+        logger.error("Unsuccesful attempt to activate IPS4 for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your IPSuite4 account.')
+    return redirect("/services")
 
 @login_required
 @members_and_blues()
@@ -765,9 +807,11 @@ def reset_ips4_password(request):
     if result != "":
         AuthServicesInfoManager.update_user_ips4_info(authinfo.ips4_username, result, member_id, request.user)
         logger.info("Succesfully reset IPS4 password for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to reset IPS4 password for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Reset IPSuite4 password.')
+    else:
+        logger.error("Unsuccessful attempt to reset IPS4 password for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your IPSuite4 account.')
+    return redirect("/services")
 
 @login_required
 @members_and_blues()
@@ -786,19 +830,18 @@ def set_ips4_password(request):
             member_id = Ips4Manager.get_user_id(authinfo.ips4_username)
             if result != "":
                 AuthServicesInfoManager.update_user_ips4_info(authinfo.ips4_username, result, member_id, request.user)
-                logger.info("Succesfully reset IPS4 password for user %s" % request.user)
-                return redirect("/services/")
+                logger.info("Succesfully set IPS4 password for user %s" % request.user)
+                messages.success(request, 'Set IPSuite4 password.')
             else:
                 logger.error("Failed to install custom IPS4 password for user %s" % request.user)
-                error = "Failed to install custom password."
-        else:
-            error = "Invalid password provided"
+                messages.error(request, 'An error occured while processing your IPSuite4 account.')
+            return redirect('/services')
     else:
         logger.debug("Request is not type POST - providing empty form.")
         form = ServicePasswordForm()
 
     logger.debug("Rendering form for user %s" % request.user)
-    context = {'form': form, 'service': 'IPS4', 'error': error}
+    context = {'form': form, 'service': 'IPS4'}
     return render(request, 'registered/service_password.html', context=context)
 
 @login_required
@@ -810,9 +853,11 @@ def deactivate_ips4(request):
     if result != "":
         AuthServicesInfoManager.update_user_ips4_info("", "", "", request.user)
         logger.info("Succesfully deactivated IPS4 for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to deactivate IPS4 for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Deactivated IPSuite4 account.')
+    else:
+        logger.error("Unsuccesful attempt to deactivate IPS4 for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your IPSuite4 account.')
+    return redirect("/services")
 
 @login_required
 @members_and_blues()
@@ -829,9 +874,11 @@ def activate_smf(request):
         logger.debug("Updated authserviceinfo for user %s with smf credentials. Updating groups." % request.user)
         update_smf_groups.delay(request.user.pk)
         logger.info("Succesfully activated smf for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to activate smf for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Activated SMF account.')
+    else:
+        logger.error("Unsuccesful attempt to activate smf for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your SMF account.')
+    return redirect("/services")
 
 
 @login_required
@@ -844,9 +891,11 @@ def deactivate_smf(request):
     if result:
         AuthServicesInfoManager.update_user_smf_info("", "", request.user)
         logger.info("Succesfully deactivated smf for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to activate smf for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Deactivated SMF account.')
+    else:
+       logger.error("Unsuccesful attempt to activate smf for user %s" % request.user)
+       messages.error(request, 'An error occured while processing your SMF account.')
+    return redirect("/services")
 
 
 @login_required
@@ -859,9 +908,11 @@ def reset_smf_password(request):
     if result != "":
         AuthServicesInfoManager.update_user_smf_info(authinfo.smf_username, result, request.user)
         logger.info("Succesfully reset smf password for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to reset smf password for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Reset SMF password.')
+    else:
+        logger.error("Unsuccessful attempt to reset smf password for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your SMF account.')
+    return redirect("/services")
 
 @login_required
 @members_and_blues()
@@ -879,13 +930,12 @@ def set_smf_password(request):
             result = smfManager.update_user_password(authinfo.smf_username, authinfo.main_char_id, password=password)
             if result != "":
                 AuthServicesInfoManager.update_user_smf_info(authinfo.smf_username, result, request.user)
-                logger.info("Succesfully reset smf password for user %s" % request.user)
-                return redirect("/services/")
+                logger.info("Succesfully set smf password for user %s" % request.user)
+                messages.success(request, 'Set SMF password.')
             else:
                 logger.error("Failed to install custom smf password for user %s" % request.user)
-                error = "Failed to install custom password."
-        else:
-            error = "Invalid password provided"
+                messages.error(request, 'An error occured while processing your SMF account.')
+            return redirect("/services")
     else:
         logger.debug("Request is not type POST - providing empty form.")
         form = ServicePasswordForm()
@@ -908,9 +958,11 @@ def activate_market(request):
         AuthServicesInfoManager.update_user_market_info(result[0], result[1], request.user)
         logger.debug("Updated authserviceinfo for user %s with market credentials." % request.user)
         logger.info("Succesfully activated market for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to activate market for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Activated Alliance Market account.')
+    else:
+        logger.error("Unsuccesful attempt to activate market for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your Alliance Market account.')
+    return redirect("/services")
 
 
 @login_required
@@ -923,9 +975,11 @@ def deactivate_market(request):
     if result:
         AuthServicesInfoManager.update_user_market_info("", "", request.user)
         logger.info("Succesfully deactivated market for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccesful attempt to activate market for user %s" % request.user)
-    return redirect("/dashboard")
+        messages.success(request, 'Deactivated Alliance Market account.')
+    else:
+        logger.error("Unsuccesful attempt to activate market for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your Alliance Market account.')
+    return redirect("/services")
 
 
 @login_required
@@ -938,8 +992,10 @@ def reset_market_password(request):
     if result != "":
         AuthServicesInfoManager.update_user_market_info(authinfo.market_username, result, request.user)
         logger.info("Succesfully reset market password for user %s" % request.user)
-        return redirect("/services/")
-    logger.error("Unsuccessful attempt to reset market password for user %s" % request.user)
+        messages.success(request, 'Reset Alliance Market password.')
+    else:
+        logger.error("Unsuccessful attempt to reset market password for user %s" % request.user)
+        messages.error(request, 'An error occured while processing your Alliance Market account.')
     return redirect("/dashboard")
 
 @login_required
@@ -959,12 +1015,11 @@ def set_market_password(request):
             if result != "":
                 AuthServicesInfoManager.update_user_market_info(authinfo.market_username, result, request.user)
                 logger.info("Succesfully reset market password for user %s" % request.user)
-                return redirect("/services/")
+                messages.success(request, 'Set Alliance Market password.')
             else:
                 logger.error("Failed to install custom market password for user %s" % request.user)
-                error = "Failed to install custom password."
-        else:
-            error = "Invalid password provided"
+                messages.error(request, 'An error occured while processing your Alliance Market account.')
+            return redirect("/services")
     else:
         logger.debug("Request is not type POST - providing empty form.")
         form = ServicePasswordForm()

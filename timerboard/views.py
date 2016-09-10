@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404
 from authentication.decorators import members_and_blues
 from django.utils import timezone
-
+from django.contrib import messages
 from util import check_if_user_has_permission
 from authentication.managers import AuthServicesInfoManager
 from eveonline.managers import EveManager
@@ -85,6 +85,7 @@ def add_timer_view(request):
             timer.user = request.user
             timer.save()
             logger.info("Created new timer in %s at %s by user %s" % (timer.system, timer.eve_time, request.user))
+            messages.success(request, 'Added new timer in %s at %s.' % (timer.system, timer.eve_time))
             return redirect("/timers/")
     else:
         logger.debug("Returning new TimerForm")
@@ -103,8 +104,10 @@ def remove_timer(request, timer_id):
         timer = Timer.objects.get(id=timer_id)
         timer.delete()
         logger.debug("Deleting timer id %s by user %s" % (timer_id, request.user))
+        messages.success(request, 'Deleted timer in %s at %s.' % (timer.system, timer.eve_time))
     else:
         logger.error("Unable to delete timer id %s for user %s - timer matching id not found." % (timer_id, request.user))
+        messages.error(request, 'Unable to locate timer with ID %s.' % timer_id)
     return redirect("/timers/")
 
 
@@ -137,9 +140,8 @@ def edit_timer(request, timer_id):
             timer.eve_character = character
             timer.eve_corp = corporation
             logger.info("User %s updating timer id %s " % (request.user, timer_id))
+            messages.success(request, 'Saved changes to the timer.')
             timer.save()
-
-        logger.debug("Detected no changes between timer id %s and supplied form." % timer_id)
         return redirect("/timers/")
     else:
         current_time = timezone.now()

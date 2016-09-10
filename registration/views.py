@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.utils import translation
+from django.contrib import messages
 
 from forms import RegistrationForm
 
@@ -21,7 +22,7 @@ def register_user_view(request):
 
                 user.save()
                 logger.info("Created new user %s" % user)
-
+                messages.warning(request, 'Add an API key to set up your account.')
                 return redirect("/dashboard/")
 
             else:

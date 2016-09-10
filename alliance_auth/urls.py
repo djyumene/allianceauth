@@ -271,9 +271,6 @@ urlpatterns += i18n_patterns(
                        #Jabber
                        url(_(r'^set_jabber_password/$'), services.views.set_jabber_password, name='auth_set_jabber_password'),
                        
-                       # FLEET FITTINGS
-                       url(_(r'^fits/$'), services.views.fleet_fits, name='auth_fleet_fits'),
-                       
                        # FleetActivityTracking (FAT)
                        url(r'^fat/$', fleetactivitytracking.views.fatlink_view, name='auth_fatlink_view'),
                        url(r'^fat/statistics/$', fleetactivitytracking.views.fatlink_statistics_view, name='auth_fatlink_view_statistics'),

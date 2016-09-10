@@ -2,6 +2,7 @@ from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
+from django.contrib import messages
 
 from util import add_member_permission
 from util import remove_member_permission
@@ -21,6 +22,7 @@ from authentication.models import AuthServicesInfo
 from celerytask.tasks import determine_membership_by_user
 from celerytask.tasks import set_state
 from celerytask.tasks import refresh_api
+from authentication.states import NONE_STATE
 
 import logging
 
@@ -29,20 +31,24 @@ logger = logging.getLogger(__name__)
 
 def disable_member(user, char_id):
     logger.debug("Disabling user %s with character id %s" % (user, char_id))
-    remove_member_permission(user, 'member')
     remove_user_from_group(user, settings.DEFAULT_AUTH_GROUP)
     remove_user_from_group(user,
                            generate_corp_group_name(
                                EveManager.get_character_by_id(char_id).corporation_name))
     deactivate_services(user)
+    auth = AuthServicesInfo.objects.get_or_create(user=user)[0].state
+    auth.state = NONE_STATE
+    auth.save()
     logger.info("Disabled member %s" % user)
 
 
 def disable_blue_member(user):
     logger.debug("Disabling blue user %s" % user)
-    remove_member_permission(user, 'blue_member')
     remove_user_from_group(user, settings.DEFAULT_BLUE_GROUP)
     deactivate_services(user)
+    auth = AuthServicesInfo.objects.get_or_create(user=user)[0].state
+    auth.state = NONE_STATE
+    auth.save()
     logger.info("Disabled blue user %s" % user)
 
 @login_required
@@ -63,6 +69,7 @@ def add_api_key(request):
                                                                form.cleaned_data['api_key'])
             EveManager.create_characters_from_list(characters, request.user, form.cleaned_data['api_id'])
             logger.info("Successfully processed api add form for user %s" % request.user)
+            messages.success(request, 'Added API key %s to your account.' % form.cleaned_data['api_id'])
             return redirect("/api_key_management/")
         else:
             logger.debug("Form invalid: returning to form.")
@@ -70,6 +77,9 @@ def add_api_key(request):
         logger.debug("Providing empty update key form for user %s" % request.user)
         form = UpdateKeyForm()
         form.user_state = user_state
+    auth = AuthServicesInfo.objects.get_or_create(user=request.user)[0]
+    if not auth.main_char_id:
+        messages.warning(request, 'Please select a main character.')
     context = {'form': form, 'apikeypairs': EveManager.get_api_key_pairs(request.user.id)}
     return render(request, 'registered/addapikey.html', context=context)
 
@@ -92,7 +102,7 @@ def api_key_removal(request, api_id):
         for character in characters:
             if character.character_id == authinfo.main_char_id:
                 if character.api_id == api_id:
-                    # TODO: Remove services also
+                    messages.warning(request, 'You have deleted your main character. Please select a new main character.')
                     if authinfo.is_blue:
                         logger.debug("Blue user %s deleting api for main character. Disabling." % request.user)
                         disable_blue_member(request.user)
@@ -102,6 +112,7 @@ def api_key_removal(request, api_id):
 
     EveManager.delete_api_key_pair(api_id, request.user.id)
     EveManager.delete_characters_by_api_id(api_id, request.user.id)
+    messages.success(request, 'Deleted API key %s' % api_id)
     logger.info("Succesfully processed api delete request by user %s for api %s" % (request.user, api_id))
     return redirect("/api_key_management/")
 
@@ -120,7 +131,9 @@ def main_character_change(request, char_id):
     if EveManager.check_if_character_owned_by_user(char_id, request.user):
         AuthServicesInfoManager.update_main_char_Id(char_id, request.user)
         set_state(request.user)
+        messages.success(request, 'Changed main character ID to %s' % char_id)
         return redirect("/characters/")
+    messages.error(request, 'Failed to change main character - selected character is not owned by your account.')
     return redirect("/characters/")
 
 
@@ -132,9 +145,12 @@ def user_refresh_api(request, api_id):
         api_key_pair = EveApiKeyPair.objects.get(api_id=api_id)
         if api_key_pair.user == request.user:
             refresh_api(api_key_pair)
+            messages.success(request, 'Refreshed API key %s' % api_id)
             set_state(request.user)
         else:
+            messages.warning(request, 'You are not authorized to refresh that API key.')
             logger.warn("User %s not authorized to refresh api id %s" % (request.user, api_id))
     else:
+        messages.warning(request, 'Unable to locate API key %s' % api_id)
         logger.warn("User %s unable to refresh api id %s - api key not found" % (request.user, api_id))
     return redirect("/api_key_management/")
