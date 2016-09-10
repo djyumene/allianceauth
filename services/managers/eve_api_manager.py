@@ -1,7 +1,9 @@
 import evelink.api
 import evelink.char
 import evelink.eve
-
+from authentication.states import MEMBER_STATE, BLUE_STATE
+from authentication.models import AuthServicesInfo
+from eveonline.models import EveCharacter
 from django.conf import settings
 
 import logging
@@ -11,6 +13,31 @@ logger = logging.getLogger(__name__)
 class EveApiManager():
     def __init__(self):
         pass
+
+    class ApiValidationError(Exception):
+        def __init__(self, msg, api_id):
+            self.msg = msg
+            self.api_id = api_id
+
+        def __str__(self):
+            return self.msg
+
+    class ApiMaskValidationError(ApiValidationError):
+        def __init__(self, required_mask, api_mask, api_id):
+            msg = 'Insufficient API mask provided. Required: %s Got: %s' % (required_mask, api_mask)
+            self.required_mask = required_mask
+            self.api_mask = api_mask
+            super(EveApiManager.ApiMaskValidationError, self).__init__(msg, api_id)
+
+    class ApiAccountValidationError(ApiValidationError):
+        def __init__(self, api_id):
+            msg = 'Insufficient API access provided. Full account access is required, got character restricted.'
+            super(EveApiManager.ApiAccountValidationError, self).__init__(msg, api_id)
+
+    class ApiInvalidError(ApiValidationError):
+        def __init__(self, api_id):
+            msg = 'Key is invalid.'
+            super(EveApiManager.ApiInvalidError, self).__init__(msg, api_id)
 
     @staticmethod
     def get_characters_from_api(api_id, api_key):
@@ -56,6 +83,12 @@ class EveApiManager():
         results = corpinfo[0]
         logger.debug("Got corp info %s" % results)
         return results
+
+    @staticmethod
+    def get_api_info(api_id, api_key):
+        api = evelink.api.API(api_key=(api_id, api_key))
+        account = evelink.account.Account(api=api)
+        return account.key_info()[0]        
 
     @staticmethod
     def check_api_is_type_account(api_id, api_key):
@@ -264,4 +297,40 @@ class EveApiManager():
         if EveApiManager.check_blue_api_is_full(api_id, api_key) is False:
             logger.info("Api id %s does not meet minimum blue access mask requirements - failed validation." % api_id)
             return False
+        return True
+
+    @staticmethod
+    def validate_api(api_id, api_key, user):
+        try:
+            info = EveApiManager.get_api_info(api_id, api_key).result
+            chars = EveApiManager.get_characters_from_api(api_id, api_key).result
+        except evelink.api.APIError as e:
+            if int(e.code) in [221, 222]:
+                raise e
+            raise EveApiManager.ApiInvalidError(api_id)
+        except Exception as e:
+            raise EveApiManager.ApiInvalidError(api_id)
+        auth, c = AuthServicesInfo.objects.get_or_create(user=user)
+        states = [auth.state]
+        from celerytask.tasks import determine_membership_by_character # circular import issue
+        for char in chars:
+            evechar = EveCharacter()
+            evechar.character_name = chars[char]['name']
+            evechar.corporation_id = chars[char]['corp']['id']
+            evechar.alliance_id = chars[char]['alliance']['id']
+            states.append(determine_membership_by_character(evechar))
+        if (not MEMBER_STATE in states) and (not BLUE_STATE in states):
+            # default to requiring member keys for applications
+            states.append(MEMBER_STATE)
+        logger.debug('Checking API %s for states %s' % (api_id, states))
+        for state in states:
+            if (state == MEMBER_STATE and settings.MEMBER_API_ACCOUNT) or (state == BLUE_STATE and settings.BLUE_API_ACCOUNT):
+                if info['type'] != 'account':
+                    raise EveApiManager.ApiAccountValidationError(api_id)
+            if state == MEMBER_STATE:
+                if int(info['access_mask']) & int(settings.MEMBER_API_MASK) != int(settings.MEMBER_API_MASK):
+                    raise EveApiManager.ApiMaskValidationError(settings.MEMBER_API_MASK, info['access_mask'], api_id)
+            elif state == BLUE_STATE:
+                if int(info['access_mask']) & int(settings.BLUE_API_MASK) != int(settings.BLUE_API_MASK):
+                    raise EveApiManager.ApiMaskValidationError(settings.BLUE_API_MASK, info['access_mask'], api_id)
         return True

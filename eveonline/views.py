@@ -56,8 +56,7 @@ def add_api_key(request):
     logger.debug("add_api_key called by user %s" % request.user)
     user_state = determine_membership_by_user(request.user)
     if request.method == 'POST':
-        form = UpdateKeyForm(request.POST)
-        form.user_state=user_state
+        form = UpdateKeyForm(request.user, request.POST)
         logger.debug("Request type POST with form valid: %s" % form.is_valid())
         if form.is_valid():
             EveManager.create_api_keypair(form.cleaned_data['api_id'],
@@ -75,8 +74,7 @@ def add_api_key(request):
             logger.debug("Form invalid: returning to form.")
     else:
         logger.debug("Providing empty update key form for user %s" % request.user)
-        form = UpdateKeyForm()
-        form.user_state = user_state
+        form = UpdateKeyForm(request.user)
     auth = AuthServicesInfo.objects.get_or_create(user=request.user)[0]
     if not auth.main_char_id:
         messages.warning(request, 'Please select a main character.')

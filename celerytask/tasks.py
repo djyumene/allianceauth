@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from notifications import notify
 from celery import task
+from celery import group
 from celery.task.schedules import crontab
 from services.managers.openfire_manager import OpenfireManager
 from services.managers.mumble_manager import MumbleManager
@@ -18,6 +19,7 @@ from services.models import AuthTS
 from services.models import TSgroup
 from authentication.models import AuthServicesInfo
 from eveonline.managers import EveManager
+from eveonline.models import EveApiKeyPair
 from services.managers.eve_api_manager import EveApiManager
 from util.common_task import deactivate_services
 from util import add_member_permission
@@ -435,98 +437,70 @@ def set_state(user):
     if change:
         notify(user, "Membership State Change", message="You membership state has been changed to %s" % state)
 
-def refresh_api(api_key_pair):
-    logger.debug("Running update on api key %s" % api_key_pair.api_id)
-    user = api_key_pair.user
-    if EveApiManager.api_key_is_valid(api_key_pair.api_id, api_key_pair.api_key):
-        #check to ensure API key meets min spec
-        logger.info("Determined api key %s is still active." % api_key_pair.api_id)
-        still_valid = True
-        state = determine_membership_by_user(user)
-        if state == BLUE_STATE:
-            if settings.BLUE_API_ACCOUNT:
-                if not EveApiManager.check_api_is_type_account(api_key_pair.api_id, api_key_pair.api_key):
-                    logger.info("Determined api key %s for blue user %s is no longer type account as requred." % (api_key_pair.api_id, user))
-                    still_valid = False
-                    notify(user, "API Failed Validation", message="Your API key ID %s is not account-wide as required." % api_key_pair.api_id, level="danger")
-                if not EveApiManager.check_blue_api_is_full(api_key_pair.api_id, api_key_pair.api_key):
-                    logger.info("Determined api key %s for blue user %s no longer meets minimum access mask as required." % (api_key_pair.api_id, user))
-                    still_valid = False
-                    notify(user, "API Failed Validation", message="Your API key ID %s does not meet access mask requirements." % api_key_pair.api_id, level="danger")
-        elif state == MEMBER_STATE:
-            if settings.MEMBER_API_ACCOUNT:
-                if not EveApiManager.check_api_is_type_account(api_key_pair.api_id, api_key_pair.api_key):
-                    logger.info("Determined api key %s for user %s is no longer type account as required." % (api_key_pair.api_id, user))
-                    still_valid = False
-                    notify(user, "API Failed Validation", message="Your API key ID %s is not account-wide as required." % api_key_pair.api_id, level="danger")
-                if not EveApiManager.check_api_is_full(api_key_pair.api_id, api_key_pair.api_key):
-                    logger.info("Determined api key %s for user %s no longer meets minimum access mask as required." % (api_key_pair.api_id, user))
-                    still_valid = False
-                    notify(user, "API Failed Validation", message="Your API key ID %s does not meet access mask requirements." % api_key_pair.api_id, level="danger")
+@task
+def refresh_api(api):
+    logger.debug('Running update on api key %s' % api.api_id)
+    still_valid = True
+    try:
+        EveApiManager.validate_api(api.api_id, api.api_key, api.user)
+        # Update characters
+        characters = EveApiManager.get_characters_from_api(api.api_id, api.api_key)
+        EveManager.update_characters_from_list(characters)
+        new_character = False
+        for char in characters.result:
+            # Ensure we have a model for all characters on key
+            if not EveManager.check_if_character_exist(characters.result[char]['name']):
+                logger.debug("API key %s has a new character on the account: %s" % (api.api_id, characters.result[char]['name']))
+                new_character = True
+        if new_character:
+            logger.debug("Creating new character %s from api key %s" % (characters.result[char]['name'], api.api_id))
+            EveManager.create_characters_from_list(characters, api.user, api.api_id)
+        current_chars = EveCharacter.objects.filter(api_id=api.api_id)
+        for c in current_chars:
+            if not int(c.character_id) in characters.result:
+                logger.info("Character %s no longer found on API ID %s" % (c, api.api_id))
+                c.delete()
+    except evelink.api.APIError as e:
+        logger.warning('Received unexpected APIError (%s) while updateing API %s' % (e.code, api.api_id))
+    except EveApiManager.ApiInvalidError as e:
+        logger.debug("API key %s is no longer valid; it and its characters will be deleted." % api.api_id)
+        notify(api.user, "API Failed Validation", message="Your API key ID %s is no longer valid." % api.api_id, level="danger")
+        still_valid = False
+    except EveApiManager.ApiAccountValidationError as e:
+        logger.info("Determined api key %s for user %s no longer meets account access requirements." % (api.api_id, api.user))
+        notify(api.user, "API Failed Validation", message="Your API key ID %s is no longer account-wide as required." % api.api_id, level="danger")
+        still_valid = False
+    except EveApiManager.ApiMaskValidationError as e:
+        logger.info("Determined api key %s for user %s no longer meets minimum access mask as required." % (api.api_id, api.user))
+        notify(api.user, "API Failed Validation", message="Your API key ID %s no longer meets access mask requirements. Required: %s Got: %s" % (api.api_id, e.required_mask, e.api_mask), level="danger")
+        still_valid = False
+    finally:
         if not still_valid:
-           logger.debug("API key %s has failed validation; it and its characters will be deleted." % api_key_pair.api_id)
-           EveManager.delete_characters_by_api_id(api_key_pair.api_id, user.id)
-           EveManager.delete_api_key_pair(api_key_pair.api_id, user.id)
-           notify(user, "API Key Deleted", message="Your API key ID %s has failed validation. It and its associated characters have been deleted." % api_key_pair.api_id, level="danger")
-        else:
-           logger.info("Determined api key %s still meets requirements." % api_key_pair.api_id)
-           # Update characters
-           characters = EveApiManager.get_characters_from_api(api_key_pair.api_id, api_key_pair.api_key)
-           EveManager.update_characters_from_list(characters)
-           new_character = False
-           for char in characters.result:
-               # Ensure we have a model for all characters on key
-               if not EveManager.check_if_character_exist(characters.result[char]['name']):
-                   new_character = True
-                   logger.debug("API key %s has a new character on the account: %s" % (api_key_pair.api_id, characters.result[char]['name']))
-               if new_character:
-                   logger.debug("Creating new character %s from api key %s" % (characters.result[char]['name'], api_key_pair.api_id))
-                   EveManager.create_characters_from_list(characters, user, api_key_pair.api_id)
-           current_chars = EveCharacter.objects.filter(api_id=api_key_pair.api_id)
-           for c in current_chars:
-               if not int(c.character_id) in characters.result:
-                   logger.info("Character %s no longer found on API ID %s" % (c, api_key_pair.api_id))
-                   c.delete()
-    else:
-        logger.debug("API key %s is no longer valid; it and its characters will be deleted." % api_key_pair.api_id)
-        EveManager.delete_characters_by_api_id(api_key_pair.api_id, user.id)
-        EveManager.delete_api_key_pair(api_key_pair.api_id, user.id)
-        notify(user, "API Key Deleted", message="Your API key ID %s is invalid. It and its associated characters have been deleted." % api_key_pair.api_id, level="danger")
+            EveManager.delete_characters_by_api_id(api.api_id, api.user.id)
+            EveManager.delete_api_key_pair(api.api_id, api.user.id)
+            notify(api.user, "API Key Deleted", message="Your API key ID %s is invalid. It and its associated characters have been deleted." % api.api_id, level="danger")
 
-# Run every 3 hours
+@task
+def refresh_user_apis(user):
+    logger.debug('Refreshing all APIs belonging to user %s' % user)
+    apis = EveApiKeyPair.objects.filter(user=user)
+    job = group([refresh_api.s(x) for x in apis])()
+    # await completion of all refreshes
+    job.get()
+    # Check our main character
+    auth = AuthServicesInfo.objects.get_or_create(user=user)[0]
+    if auth.main_char_id:
+        if EveCharacter.objects.filter(character_id=auth.main_char_id).exists() is False:
+            logger.info("User %s main character id %s missing model. Clearning main character." % (user, auth.main_char_id))
+            authserviceinfo.main_char_id = ''
+            authserviceinfo.save()
+            notify(user, "Main Character Reset", message="Your specified main character no longer has a model.\nThis could be the result of an invalid API\nYour main character ID has been reset.", level="warn")
+    set_state(user)
+
 @periodic_task(run_every=crontab(minute=0, hour="*/3"))
 def run_api_refresh():
-    users = User.objects.all()
-    logger.debug("Running api refresh on %s users." % len(users))
-    for user in users:
-        # Check if the api server is online
-        logger.debug("Running api refresh for user %s" % user)
-        if EveApiManager.check_if_api_server_online():
-            api_key_pairs = EveManager.get_api_key_pairs(user.id)
-            logger.debug("User %s has api key pairs %s" % (user, api_key_pairs))
-            if api_key_pairs:
-                authserviceinfo, c = AuthServicesInfo.objects.get_or_create(user=user)
-                logger.debug("User %s has api keys. Proceeding to refresh." % user)
-                for api_key_pair in api_key_pairs:
-                    try:
-                        refresh_api(api_key_pair)
-                    except evelink.api.APIError as e:
-                        if int(e.code) >= 500:
-                            logger.error("EVE API servers encountered error %s updating %s" % (e.code, api_key_pair))
-                        elif int(e.code) == 221:
-                            logger.warn("API server hiccup %s while updating %s" % (e.code, api_key_pair))
-                        else:
-                            logger.info("API key %s failed update with error code %s" % (api_key_pair.api_id, e.code))
-                            EveManager.delete_characters_by_api_id(api_key_pair.api_id, user.id)
-                            EveManager.delete_api_key_pair(api_key_pair.api_id, user.id)
-                            notify(user, "API Key Deleted", message="Your API key ID %s failed validation with code %s. It and its associated characters have been deleted." % (api_key_pair.api_id, e.code), level="danger")
-                # Check our main character
-                if EveCharacter.objects.filter(character_id=authserviceinfo.main_char_id).exists() is False:
-                    logger.info("User %s main character id %s missing model. Clearning main character." % (user, authserviceinfo.main_char_id))
-                    authserviceinfo.main_char_id = ''
-                    authserviceinfo.save()
-                    notify(user, "Main Character Reset", message="Your specified main character no longer has a model.\nThis could be the result of an invalid API\nYour main character ID has been reset.", level="warn")
-        set_state(user)
+    for u in User.objects.all():
+        refresh_user_apis.delay(u)
 
 def populate_alliance(id, blue=False):
     logger.debug("Populating alliance model with id %s blue %s" % (id, blue))
