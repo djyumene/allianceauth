@@ -37,6 +37,7 @@ from forms import ServicePasswordForm
 from forms import TeamspeakJoinForm
 from util import check_if_user_has_permission
 from authentication.decorators import members_and_blues
+from authentication.states import MEMBER_STATE, BLUE_STATE, NONE_STATE
 
 import threading
 import datetime 
@@ -122,9 +123,28 @@ def jabber_broadcast_view(request):
 @members_and_blues()
 def services_view(request):
     logger.debug("services_view called by user %s" % request.user)
-    authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
+    auth = AuthServicesInfoManager.get_auth_service_info(request.user)
 
-    return render(request, 'registered/services.html', context={'authinfo': authinfo})
+    services = [
+        'FORUM',
+        'JABBER',
+        'MUMBLE',
+        'IPBOARD',
+        'TEAMSPEAK3',
+        'DISCORD',
+        'DISCOURSE',
+        'IPS4',
+        'SMF',
+        'MARKET',
+        'XENFORO',
+    ]
+
+    context={'authinfo': auth}
+
+    for s in services:
+        context['SHOW_' + s] = (getattr(settings, 'ENABLE_AUTH_' + s) and (auth.state == MEMBER_STATE or request.user.is_superuser)) or (getattr(settings, 'ENABLE_BLUE_' + s) and (auth.state == BLUE_STATE or request.user.is_superuser))
+
+    return render(request, 'registered/services.html', context=context)
 
 
 def superuser_test(user):
@@ -358,7 +378,7 @@ def activate_mumble(request):
     character = EveManager.get_character_by_id(authinfo.main_char_id)
     ticker = character.corporation_ticker
 
-    if check_if_user_has_permission(request.user, "blue_member"):
+    if authinfo.state == BLUE_STATE:
         logger.debug("Adding mumble user for blue user %s with main character %s" % (request.user, character))
         # Blue members should have alliance ticker (if in alliance)
         if EveAllianceInfo.objects.filter(alliance_id=character.alliance_id).exists():
@@ -418,7 +438,7 @@ def activate_teamspeak3(request):
     character = EveManager.get_character_by_id(authinfo.main_char_id)
     ticker = character.corporation_ticker
 
-    if check_if_user_has_permission(request.user, "blue_member"):
+    if authinfo.state == BLUE_STATE:
         logger.debug("Adding TS3 user for blue user %s with main character %s" % (request.user, character))
         # Blue members should have alliance ticker (if in alliance)
         if EveAllianceInfo.objects.filter(alliance_id=character.alliance_id).exists():
