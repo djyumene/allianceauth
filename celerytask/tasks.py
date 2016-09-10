@@ -280,10 +280,10 @@ def assign_corp_group(auth):
             char = EveCharacter.objects.get(character_id=auth.main_char_id)
             corpname = generate_corp_group_name(char.corporation_name)
             state = determine_membership_by_character(char)
-            if state == "BLUE" and settings.BLUE_CORP_GROUPS:
+            if state == BLUE_STATE and settings.BLUE_CORP_GROUPS:
                 logger.debug("Validating blue user %s has corp group assigned." % auth.user)
                 corp_group, c = Group.objects.get_or_create(name=corpname)
-            elif state == "MEMBER" and settings.MEMBER_CORP_GROUPS:
+            elif state == MEMBER_STATE and settings.MEMBER_CORP_GROUPS:
                 logger.debug("Validating member %s has corp group assigned." % auth.user)
                 corp_group, c = Group.objects.get_or_create(name=corpname)
             else:
@@ -342,15 +342,6 @@ def make_member(user):
         user.groups.add(member_group)
         change = True
     auth, c = AuthServicesInfo.objects.get_or_create(user=user)
-    if auth.is_blue:
-        logger.info("Marking user %s as non-blue" % user)
-        auth.is_blue = False
-        auth.save()
-        change = True
-    if auth.state != MEMBER_STATE:
-        auth.state = MEMBER_STATE
-        auth.save()
-        change = True
     assign_corp_group(auth)
     assign_alliance_group(auth)
     return change
@@ -371,15 +362,6 @@ def make_blue(user):
         user.groups.add(blue_group)
         change = True
     auth, c = AuthServicesInfo.objects.get_or_create(user=user)
-    if auth.is_blue is False:
-        logger.info("Marking user %s as blue" % user)
-        auth.is_blue = True
-        auth.save()
-        change = True
-    if auth.state != BLUE_STATE:
-        auth.state = BLUE_STATE
-        auth.save()
-        change = True
     assign_corp_group(auth)
     assign_alliance_group(auth)
     return change
@@ -428,14 +410,11 @@ def set_state(user):
     else:
         state = NONE_STATE
     logger.debug("Assigning user %s to state %s" % (user, state))
-    if state == MEMBER_STATE:
-        change = make_member(user)
-    elif state == BLUE_STATE:
-        change = make_blue(user)
-    else:
-        change = disable_member(user)
-    if change:
-        notify(user, "Membership State Change", message="You membership state has been changed to %s" % state)
+    auth = AuthServicesInfo.objects.get_or_create(user=user)[0]
+    if auth.state != state:
+       auth.state = state
+       auth.save()
+       notify(user, "Membership State Change", message="You membership state has been changed to %s" % state)
 
 @task
 def refresh_api(api):
@@ -461,7 +440,7 @@ def refresh_api(api):
                 logger.info("Character %s no longer found on API ID %s" % (c, api.api_id))
                 c.delete()
     except evelink.api.APIError as e:
-        logger.warning('Received unexpected APIError (%s) while updateing API %s' % (e.code, api.api_id))
+        logger.warning('Received unexpected APIError (%s) while updating API %s' % (e.code, api.api_id))
     except EveApiManager.ApiInvalidError as e:
         logger.debug("API key %s is no longer valid; it and its characters will be deleted." % api.api_id)
         notify(api.user, "API Failed Validation", message="Your API key ID %s is no longer valid." % api.api_id, level="danger")

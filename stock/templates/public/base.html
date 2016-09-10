@@ -83,6 +83,9 @@
                     </li>
                 {% endif %}
                 {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                    {% endif %}
                     <li><a href="{% url 'auth_logout_user' %}">{% trans "Logout" %}</a></li>
                 {% else %}
                     <li><a href="{% url 'auth_login_user' %}">{% trans "Login" %}</a></li>

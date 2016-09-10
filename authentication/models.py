@@ -26,7 +26,6 @@ class AuthServicesInfo(models.Model):
     smf_username = models.CharField(max_length=254, blank=True, default="")
     market_username = models.CharField(max_length=254, blank=True, default="")
     main_char_id = models.CharField(max_length=64, blank=True, default="")
-    is_blue = models.BooleanField(default=False)
     user = models.ForeignKey(User)
     state = models.CharField(blank=True, null=True, choices=STATE_CHOICES, default=NONE_STATE, max_length=10)
 
