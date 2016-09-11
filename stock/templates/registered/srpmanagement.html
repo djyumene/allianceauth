@@ -60,7 +60,7 @@
                         <th class="text-center">
                             {% if srpfleet.fleet_srp_code %}
                             <div class="label label-warning">
-                                <a href="/srp_request/{{ srpfleet.fleet_srp_code }}"
+                                <a href="{% url 'auth_srp_request_view' srpfleet.fleet_srp_code %}"
                                    >{{ srpfleet.fleet_srp_code }}</a>
                             </div>
                             {% else %}
@@ -90,24 +90,24 @@
                         </td>
                         <td class="text-center">
 
-                            <a href="/srp_fleet_view/{{ srpfleet.id }}" class="btn btn-primary">
+                            <a href="{% url 'auth_srp_fleet_view' srpfleet.id %}" class="btn btn-primary">
                                 <span class="glyphicon glyphicon-eye-open"></span>
                             </a>
 
                             {% if perms.auth.srp_management %}
-                                <a href="/srp_fleet_edit/{{ srpfleet.id }}" class="btn btn-info">
+                                <a href="{% url 'auth_srp_fleet_edit_view' srpfleet.id %}" class="btn btn-info">
                                     <span class="glyphicon glyphicon-pencil"></span>
                                 </a>
 
-                                <a href="/srp_fleet_remove/{{ srpfleet.id }}" class="btn btn-danger">
+                                <a href="{% url 'auth_srp_fleet_remove' srpfleet.id %}" class="btn btn-danger">
                                     <span class="glyphicon glyphicon-trash"></span>
                                 </a>
                                 {% if srpfleet.fleet_srp_code %}
-                                    <a href="/srp_fleet_disable/{{ srpfleet.id }}" class="btn btn-warning">
+                                    <a href="{% url 'auth_srp_fleet_disable' srpfleet.id %}" class="btn btn-warning">
                                         <span class="glyphicon glyphicon-remove-sign"></span>
                                     </a>
                                 {% else %}
-                                    <a href="/srp_fleet_enable/{{ srpfleet.id }}" class="btn btn-success">
+                                    <a href="{% url 'auth_srp_fleet_enable' srpfleet.id %}" class="btn btn-success">
                                         <span class="glyphicon glyphicon-ok-sign"></span>
                                     </a>
                                 {% endif %}

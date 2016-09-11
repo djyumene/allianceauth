@@ -108,7 +108,7 @@ def fatlink_statistics_view(request, year=datetime.date.today().year, month=date
     else:
         context = {'fatStats':fatStatsList, 'month':start_of_month.strftime("%B"), 'year':year, 'previous_month': start_of_previous_month}
 
-    return render('registered/fatlinkstatisticsview.html', context=context)
+    return render(request, 'registered/fatlinkstatisticsview.html', context=context)
 
 
 
@@ -168,7 +168,7 @@ def fatlink_monthly_personal_statistics_view(request, year, month, char_id=None)
     context["created_fats"] = created_fats
     context["n_created_fats"] = len(created_fats)
 
-    return render('registered/fatlinkpersonalmonthlystatisticsview.html', context=context)
+    return render(request, 'registered/fatlinkpersonalmonthlystatisticsview.html', context=context)
 
 
 @login_required
@@ -251,7 +251,7 @@ def create_fatlink_view(request):
                 form = FatlinkForm()
                 context = {'form': form, 'badrequest': True}
                 return render(request, 'registered/fatlinkformatter.html', context=context)
-            return redirect('/fat/')
+            return redirect('auth_fatlink_view')
 
     else:
         form = FatlinkForm()

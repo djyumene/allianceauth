@@ -27,7 +27,7 @@
                         <td class="text-center">
                             {% if pair.0 in user.groups.all %}
                                 {% if pair.2 == "" %}
-                                    <a href="/group/request_leave/{{ pair.0.id }}" class="btn btn-danger">
+                                    <a href="{% url 'auth_group_request_leave' pair.0.id %}" class="btn btn-danger">
                                         {% trans "Leave" %}
                                     </a>
                                 {% else %}
@@ -36,7 +36,7 @@
                                     </button>
                                 {% endif %}
                             {% elif pair.2 == "" %}
-                                <a href="/group/request_add/{{ pair.0.id }}" class="btn btn-success">
+                                <a href="{% url 'auth_group_request_add' pair.0.id %}" class="btn btn-success">
                                     {% trans "Request" %}
                                 </a>
                             {% else %}

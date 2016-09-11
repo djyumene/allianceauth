@@ -111,10 +111,10 @@
                 <td class="text-center">{{ timer.eve_character.character_name }}</td>
                 {% if perms.auth.timer_management %}
                     <td class="text-center">
-                        <a href="/remove_timer/{{ timer.id }}" class="btn btn-danger">
+                        <a href="{% url 'auth_remove_timer' timer.id %}" class="btn btn-danger">
                             <span class="glyphicon glyphicon-remove"></span>
                         </a>
-                        <a href="/edit_timer/{{ timer.id }}" class="btn btn-info">
+                        <a href="{% url 'auth_edit_timer' timer.id %}" class="btn btn-info">
                             <span class="glyphicon glyphicon-pencil"></span>
                         </a>
                     </td>
@@ -211,10 +211,10 @@
                 <td class="text-center">{{ timer.eve_character.character_name }}</td>
                 {% if perms.auth.timer_management %}
                     <td class="text-center">
-                        <a href="/remove_timer/{{ timer.id }}" class="btn btn-danger">
+                        <a href="{% url 'auth_remove_timer' timer.id %}" class="btn btn-danger">
                             <span class="glyphicon glyphicon-remove"></span>
                         </a>
-                        <a href="/edit_timer/{{ timer.id }}" class="btn btn-info">
+                        <a href="{% url 'auth_edit_timer' timer.id %}" class="btn btn-info">
                             <span class="glyphicon glyphicon-pencil"></span>
                     </td>
                 {% endif %}
@@ -309,10 +309,10 @@
                 <td class="text-center">{{ timer.eve_character.character_name }}</td>
                 {% if perms.auth.timer_management %}
                     <td class="text-center">
-                        <a href="/remove_timer/{{ timer.id }}" class="btn btn-danger">
+                        <a href="{% url 'auth_remove_timer' timer.id %}" class="btn btn-danger">
                             <span class="glyphicon glyphicon-remove"></span>
                         </a>
-                        <a href="/edit_timer/{{ timer.id }}" class="btn btn-info">
+                        <a href="{% url 'auth_edit_timer' timer.id %}" class="btn btn-info">
                             <span class="glyphicon glyphicon-pencil"></span>
                         </a>
                     </td>

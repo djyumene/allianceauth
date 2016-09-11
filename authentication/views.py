@@ -22,7 +22,7 @@ def login_user(request):
                 if user.is_active:
                     logger.info("Successful login attempt from user %s" % user)
                     login(request, user)
-                    return redirect("/dashboard/")
+                    return redirect("auth_dashboard")
                 else:
                     logger.info("Login attempt failed for user %s: user marked inactive." % user)
             else:
@@ -41,4 +41,4 @@ def logout_user(request):
     logoutUser = request.user
     logout(request)
     logger.info("Successful logout for user %s" % logoutUser)
-    return redirect("/")
+    return redirect("auth_index")

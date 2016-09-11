@@ -108,7 +108,7 @@ def remove_timer(request, timer_id):
     else:
         logger.error("Unable to delete timer id %s for user %s - timer matching id not found." % (timer_id, request.user))
         messages.error(request, 'Unable to locate timer with ID %s.' % timer_id)
-    return redirect("/timers/")
+    return redirect("auth_timer_view")
 
 
 @login_required
@@ -142,7 +142,7 @@ def edit_timer(request, timer_id):
             logger.info("User %s updating timer id %s " % (request.user, timer_id))
             messages.success(request, 'Saved changes to the timer.')
             timer.save()
-        return redirect("/timers/")
+        return redirect("auth_timer_view")
     else:
         current_time = timezone.now()
         td = timer.eve_time - current_time

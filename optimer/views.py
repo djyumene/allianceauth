@@ -77,7 +77,7 @@ def remove_optimer(request, optimer_id):
         messages.success(request, 'Removed operation timer for %s.' % op.operation_name)
     else:
         logger.error("Unable to delete optimer id %s for user %s - operation matching id not found." % (optimer_id, request.user))
-    return redirect("/optimer/")
+    return redirect("auth_optimer_view")
 
 @login_required
 @permission_required('auth.optimer_management')
@@ -102,7 +102,7 @@ def edit_optimer(request, optimer_id):
             logger.info("User %s updating optimer id %s " % (request.user, optimer_id))
             op.save()
             messages.success(request, 'Saved changes to operation timer for %s.' % op.operation_name)
-            return redirect("/optimer/")
+            return redirect("auth_optimer_view")
     else:
         data = {
             'doctrine': op.doctrine,

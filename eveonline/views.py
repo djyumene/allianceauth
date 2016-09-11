@@ -112,7 +112,7 @@ def api_key_removal(request, api_id):
     EveManager.delete_characters_by_api_id(api_id, request.user.id)
     messages.success(request, 'Deleted API key %s' % api_id)
     logger.info("Succesfully processed api delete request by user %s for api %s" % (request.user, api_id))
-    return redirect("/api_key_management/")
+    return redirect("auth_api_key_management")
 
 
 @login_required
@@ -130,9 +130,9 @@ def main_character_change(request, char_id):
         AuthServicesInfoManager.update_main_char_Id(char_id, request.user)
         set_state(request.user)
         messages.success(request, 'Changed main character ID to %s' % char_id)
-        return redirect("/characters/")
+        return redirect("auth_characters")
     messages.error(request, 'Failed to change main character - selected character is not owned by your account.')
-    return redirect("/characters/")
+    return redirect("auth_characters")
 
 
 
@@ -151,4 +151,4 @@ def user_refresh_api(request, api_id):
     else:
         messages.warning(request, 'Unable to locate API key %s' % api_id)
         logger.warn("User %s unable to refresh api id %s - api key not found" % (request.user, api_id))
-    return redirect("/api_key_management/")
+    return redirect("auth_api_key_management")

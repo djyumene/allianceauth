@@ -60,3 +60,7 @@ nginx_config.txt
 
 # custom staticfiles
 static/*
+
+#celerybeat
+*.pid
+celerybeat-schedule

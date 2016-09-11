@@ -142,7 +142,7 @@ urlpatterns += i18n_patterns(
 
                        #corputils
                        url(r'^corputils/$', corputils.views.corp_member_view, name='auth_corputils'),
-                       url(r'^corputils/(?P<corpid>[0-9]+)/$', corputils.views.corp_member_view),
+                       url(r'^corputils/(?P<corpid>[0-9]+)/$', corputils.views.corp_member_view, name='auth_corputils_corp_view'),
                        url(r'^corputils/(?P<corpid>[0-9]+)/(?P<year>[0-9]+)/(?P<month>[0-9]+)/$', corputils.views.corp_member_view, name='auth_corputils_month'),
                        url(r'^corputils/search/$', corputils.views.corputils_search, name="auth_corputils_search"),
                        url(r'^corputils/search/(?P<corpid>[0-9]+)/$', corputils.views.corputils_search),

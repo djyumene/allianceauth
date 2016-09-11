@@ -195,7 +195,7 @@ def corp_member_view(request, corpid = None, year=datetime.date.today().year, mo
         context["this_month"] = start_of_month
 
         return render(request, 'registered/corputils.html',context=context)
-    return redirect("/dashboard/")
+    return redirect("auth_dashboard")
 
 
 @login_required
@@ -269,7 +269,7 @@ def corputils_search(request, corpid=settings.CORP_ID):
 
         else:
             logger.debug("Returning empty search form for user %s" % request.user)
-            return redirect("/corputils/")
-    return redirect("/dashboard/")
+            return redirect("auth_corputils")
+    return redirect("auth_dashboard")
 
 

@@ -52,7 +52,7 @@
                                         <ul class="dropdown-menu scrollable">
                                             {% for membercorpid, membercorpname in membercorplist %}
                                             <li>
-                                                <a href="/corputils/{{ membercorpid }}/">{{ membercorpname }}</a>
+                                                <a href="{% url 'auth_corputils_corp_view' membercorpid %}/">{{ membercorpname }}</a>
                                             </li>
                                             {% endfor %}
                                         </ul>

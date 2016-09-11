@@ -58,10 +58,10 @@
                         {% if perms.auth.optimer_management %}
                             <td style="width:150px" class="text-center">{{ ops.eve_character }}</td>
                             <td class="text-center">
-                                <a href="/remove_optimer/{{ ops.id }}" class="btn btn-danger">
+                                <a href="{% url 'auth_remove_optimer' ops.id %}" class="btn btn-danger">
                                     <span class="glyphicon glyphicon-remove"></span>
                                 </a>
-                                <a href="/edit_optimer/{{ ops.id }}" class="btn btn-info">
+                                <a href="{% url 'auth_edit_optimer' ops.id %}" class="btn btn-info">
                                     <span class="glyphicon glyphicon-pencil"></span>
                                 </a>
                             </td>

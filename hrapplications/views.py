@@ -247,7 +247,7 @@ def hr_application_search(request):
 
     else:
         logger.debug("Returning empty search form for user %s" % request.user)
-        return redirect("/hr_application_management/")
+        return redirect("auth_hrapplications_view")
 
 @login_required
 @permission_required('auth.human_resources')
@@ -268,4 +268,4 @@ def hr_application_mark_in_progress(request, app_id):
         notify(app.user, "Application In Progress", message="Your application to %s is being reviewed by %s" % (app.form.corp, app.reviewer_str))
     else:
         logger.warn("User %s unable to mark %s in progress: already being reviewed by %s" % (request.user, app, app.reviewer))
-    return redirect("/hr_application_view/" + str(app_id))
+    return redirect("auth_hrapplication_view", app_id)

@@ -23,7 +23,7 @@ def register_user_view(request):
                 user.save()
                 logger.info("Created new user %s" % user)
                 messages.warning(request, 'Add an API key to set up your account.')
-                return redirect("/dashboard/")
+                return redirect("auth_dashboard")
 
             else:
                 logger.error("Unable to register new user: username %s already exists." % form.cleaned_data['username'])
