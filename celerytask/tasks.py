@@ -287,7 +287,7 @@ def assign_corp_group(auth):
                 logger.debug("Validating member %s has corp group assigned." % auth.user)
                 corp_group, c = Group.objects.get_or_create(name=corpname)
             else:
-                logger.debug("Ensuring non-member %s has no corp groups assigned." % auth.user)
+                logger.debug("Ensuring %s has no corp groups assigned." % auth.user)
     if corp_group:
         if not corp_group in auth.user.groups.all():
             logger.info("Adding user %s to corp group %s" % (auth.user, corp_group))
@@ -313,7 +313,7 @@ def assign_alliance_group(auth):
                     logger.debug("Validating member %s has alliance group assigned." % auth.user)
                     alliance_group, c = Group.objects.get_or_create(name=alliancename)
                 else:
-                    logger.debug("Ensuring non-member %s has no alliance groups assigned." % auth.user)
+                    logger.debug("Ensuring %s has no alliance groups assigned." % auth.user)
             else:
                 logger.debug("User %s main character %s not in an alliance. Ensuring no allinace group assigned." % (auth.user, char))
     if alliance_group:
@@ -327,44 +327,36 @@ def assign_alliance_group(auth):
                 auth.user.groups.remove(g)
 
 def make_member(user):
-    change = False
     logger.debug("Ensuring user %s has member permissions and groups." % user)
     # ensure member is not blue right now
     blue_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_GROUP)
     if blue_group in user.groups.all():
         logger.info("Removing user %s blue group" % user)
         user.groups.remove(blue_group)
-        change = True
     # make member
     member_group, c = Group.objects.get_or_create(name=settings.DEFAULT_AUTH_GROUP)
     if not member_group in user.groups.all():
         logger.info("Adding user %s to member group" % user)
         user.groups.add(member_group)
-        change = True
     auth, c = AuthServicesInfo.objects.get_or_create(user=user)
     assign_corp_group(auth)
     assign_alliance_group(auth)
-    return change
 
 def make_blue(user):
-    change = False
     logger.debug("Ensuring user %s has blue permissions and groups." % user)
     # ensure user is not a member
     member_group, c = Group.objects.get_or_create(name=settings.DEFAULT_AUTH_GROUP)
     if member_group in user.groups.all():
         logger.info("Removing user %s member group" % user)
         user.groups.remove(member_group)
-        change = True
     # make blue
     blue_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_GROUP)
     if not blue_group in user.groups.all():
         logger.info("Adding user %s to blue group" % user)
         user.groups.add(blue_group)
-        change = True
     auth, c = AuthServicesInfo.objects.get_or_create(user=user)
     assign_corp_group(auth)
     assign_alliance_group(auth)
-    return change
 
 def determine_membership_by_character(char):
     if settings.IS_CORP:
@@ -402,9 +394,6 @@ def determine_membership_by_user(user):
         return NONE_STATE
 
 def set_state(user):
-    if user.is_superuser:
-        return
-    change = False
     if user.is_active:
         state = determine_membership_by_user(user)
     else:
