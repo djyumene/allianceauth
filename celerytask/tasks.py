@@ -21,7 +21,7 @@ from authentication.models import AuthServicesInfo
 from eveonline.managers import EveManager
 from eveonline.models import EveApiKeyPair
 from services.managers.eve_api_manager import EveApiManager
-from util.common_task import deactivate_services
+from util.common_task import validate_services
 from util import add_member_permission
 from util import remove_member_permission
 from util import check_if_user_has_permission
@@ -53,7 +53,7 @@ def disable_member(user):
         logger.info("Clearing user %s groups to deactivate user." % user)
         user.groups.clear()
         change = True
-    deactivate_services(user)
+    validate_services(user)
     return change
 
 def is_teamspeak3_active():
