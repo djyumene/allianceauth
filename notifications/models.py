@@ -29,7 +29,7 @@ class Notification(models.Model):
         self.viewed = True
         self.save()
 
-    def __unicode__(self):
+    def __str__(self):
         output = "%s: %s" % (self.user, self.title)
         return output.encode('utf-8')
 
