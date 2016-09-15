@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Notification
 from django.contrib.auth.decorators import login_required
@@ -5,6 +6,7 @@ from django.contrib import messages
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 @login_required
 def notification_list(request):
@@ -18,6 +20,7 @@ def notification_list(request):
     }
     return render(request, 'registered/notification_list.html', context)
 
+
 @login_required
 def notification_view(request, notif_id):
     logger.debug("notification_view called by user %s for notif_id %s" % (request.user, notif_id))
@@ -28,9 +31,11 @@ def notification_view(request, notif_id):
         notif.view()
         return render(request, 'registered/notification_view.html', context)
     else:
-        logger.warn("User %s not authorized to view notif_id %s belonging to user %s" % (request.user, notif_id, notif.user))
+        logger.warn(
+            "User %s not authorized to view notif_id %s belonging to user %s" % (request.user, notif_id, notif.user))
         messages.error(request, 'You are not authorized to view that notification.')
         return redirect('auth_notification_list')
+
 
 @login_required
 def remove_notification(request, notif_id):
@@ -42,9 +47,11 @@ def remove_notification(request, notif_id):
             logger.info("Deleting notif id %s by user %s" % (notif_id, request.user))
             messages.success(request, 'Deleted notification.')
     else:
-        logger.error("Unable to delete notif id %s for user %s - notif matching id not found." % (notif_id, request.user))
+        logger.error(
+            "Unable to delete notif id %s for user %s - notif matching id not found." % (notif_id, request.user))
         messages.error(request, 'Failed to locate notification.')
     return redirect('auth_notification_list')
+
 
 @login_required
 def mark_all_read(request):
@@ -52,6 +59,7 @@ def mark_all_read(request):
     Notification.objects.filter(user=request.user).update(viewed=True)
     messages.success(request, 'Marked all notifications as read.')
     return redirect('auth_notification_list')
+
 
 @login_required
 def delete_all_read(request):

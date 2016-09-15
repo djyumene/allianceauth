@@ -1,8 +1,10 @@
+from __future__ import unicode_literals
 import logging
 
 logger = logging.getLogger(__name__)
 
 MAX_NOTIFICATIONS = 50
+
 
 def notify(user, title, message=None, level='info'):
     from .models import Notification

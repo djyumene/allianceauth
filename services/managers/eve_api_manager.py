@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import evelink.api
 import evelink.char
 import evelink.eve
@@ -10,7 +11,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class EveApiManager():
+
+class EveApiManager:
     def __init__(self):
         pass
 
@@ -41,7 +43,6 @@ class EveApiManager():
 
     @staticmethod
     def get_characters_from_api(api_id, api_key):
-        chars = []
         logger.debug("Getting characters from api id %s" % api_id)
         api = evelink.api.API(api_key=(api_id, api_key))
         # Should get characters
@@ -53,7 +54,6 @@ class EveApiManager():
     @staticmethod
     def get_corporation_ticker_from_id(corp_id):
         logger.debug("Getting ticker for corp id %s" % corp_id)
-        ticker = ""
         api = evelink.api.API()
         corp = evelink.corp.Corp(api)
         response = corp.corporation_sheet(corp_id)
@@ -64,7 +64,6 @@ class EveApiManager():
 
     @staticmethod
     def get_alliance_information(alliance_id):
-        results = {}
         logger.debug("Getting info for alliance with id %s" % alliance_id)
         api = evelink.api.API()
         eve = evelink.eve.EVE(api=api)
@@ -76,7 +75,6 @@ class EveApiManager():
     @staticmethod
     def get_corporation_information(corp_id):
         logger.debug("Getting info for corp with id %s" % corp_id)
-        results = {}
         api = evelink.api.API()
         corp = evelink.corp.Corp(api=api)
         corpinfo = corp.corporation_sheet(corp_id=int(corp_id))
@@ -88,7 +86,7 @@ class EveApiManager():
     def get_api_info(api_id, api_key):
         api = evelink.api.API(api_key=(api_id, api_key))
         account = evelink.account.Account(api=api)
-        return account.key_info()[0]        
+        return account.key_info()[0]
 
     @staticmethod
     def check_api_is_type_account(api_id, api_key):
@@ -116,7 +114,7 @@ class EveApiManager():
         info = account.key_info()
         logger.debug("API has mask %s, required is %s" % (info[0]['access_mask'], settings.BLUE_API_MASK))
         return info[0]['access_mask'] & int(settings.BLUE_API_MASK) == int(settings.BLUE_API_MASK)
- 
+
     @staticmethod
     def get_api_info(api_id, api_key):
         logger.debug("Getting api info for key id %s" % api_id)
@@ -131,7 +129,7 @@ class EveApiManager():
         logger.debug("Checking if api id %s is valid." % api_id)
         api = evelink.api.API(api_key=(api_id, api_key))
         account = evelink.account.Account(api=api)
-        info = account.key_info()
+        account.key_info()
         logger.info("Verified api id %s is still valid." % api_id)
         return True
 
@@ -141,10 +139,10 @@ class EveApiManager():
         try:
             api = evelink.api.API()
             server = evelink.server.Server(api=api)
-            info = server.server_status()
+            server.server_status()
             logger.info("Verified API server is online and reachable.")
             return True
-        except evelink.api.APIError as error:
+        except evelink.api.APIError:
             logger.exception("APIError occured while trying to query api server. Possibly offline?")
 
         logger.warn("Unable to reach API server.")
@@ -157,7 +155,7 @@ class EveApiManager():
             api = evelink.api.API()
             corp = evelink.corp.Corp(api=api)
             corpinfo = corp.corporation_sheet(corp_id=int(corp_id))
-            results = corpinfo[0]
+            assert corpinfo[0]
             logger.debug("Confirmed id %s is a corp." % corp_id)
             return True
         except evelink.api.APIError as error:
@@ -193,10 +191,9 @@ class EveApiManager():
             results = membertracking.result
             logger.debug("Got corp membertracking from settings: %s" % results)
             return results
-        except evelink.api.APIError as error:
+        except evelink.api.APIError:
             logger.exception("Unhandled APIError occured.")
         return {}
-
 
     @staticmethod
     def check_if_id_is_alliance(alliance_id):
@@ -209,8 +206,9 @@ class EveApiManager():
             if results:
                 logger.debug("Confirmed id %s is an alliance." % alliance_id)
                 return True
-        except evelink.api.APIError as error:
-            logger.exception("APIError occured while checking if id %s is an alliance. Possibly not alliance?" % alliance_id)
+        except evelink.api.APIError:
+            logger.exception(
+                "APIError occured while checking if id %s is an alliance. Possibly not alliance?" % alliance_id)
         except KeyError:
             logger.debug("Alliance with id %s not found in active alliance list." % alliance_id)
             return False
@@ -227,8 +225,10 @@ class EveApiManager():
             if results:
                 logger.debug("Confirmed id %s is a character." % character_id)
                 return True
-        except evelink.api.APIError as error:
-            logger.debug("APIError occured while checking if id %s is a character. Possibly not character?" % character_id, exc_info=True)
+        except evelink.api.APIError:
+            logger.debug(
+                "APIError occured while checking if id %s is a character. Possibly not character?" % character_id,
+                exc_info=True)
 
         logger.debug("Unable to verify id %s is a character." % character_id)
         return False
@@ -246,15 +246,16 @@ class EveApiManager():
             else:
                 logger.debug("Verified alliance id %s does not exist." % alliance_id)
                 return False
-        except evelink.api.APIError as error:
+        except evelink.api.APIError:
             logger.exception("Unhandled APIError occured.")
             return False
-        except ValueError as error:
-            #attempts to catch error resulting from checking alliance_of nonetype models
+        except ValueError:
+            # attempts to catch error resulting from checking alliance_of nonetype models
             logger.exception("Unhandled ValueError occured. Possible nonetype alliance model.")
             return False
-        logger.warn("Exception prevented verification of alliance id %s existance. Assuming false." % alliance_id)
-        return False
+        except:
+            logger.warn("Exception prevented verification of alliance id %s existance. Assuming false." % alliance_id)
+            return False
 
     @staticmethod
     def check_if_corp_exists(corp_id):
@@ -264,17 +265,20 @@ class EveApiManager():
             corp = evelink.corp.Corp(api=api)
             corpinfo = corp.corporation_sheet(corp_id=corp_id)
             if corpinfo[0]['members']['current'] > 0:
-                logger.debug("Verified corp id %s exists with member count %s" % (corp_id, corpinfo[0]['members']['current']))
+                logger.debug(
+                    "Verified corp id %s exists with member count %s" % (corp_id, corpinfo[0]['members']['current']))
                 return True
             else:
-                logger.debug("Verified corp id %s has closed. Member count %s" % (corp_id, corpinfo[0]['members']['current']))
+                logger.debug(
+                    "Verified corp id %s has closed. Member count %s" % (corp_id, corpinfo[0]['members']['current']))
                 return False
-        except evelink.api.APIError as error:
-            #could be smart and check for error code523 to verify error due to no corp instead of catch-all
+        except evelink.api.APIError:
+            # could be smart and check for error code523 to verify error due to no corp instead of catch-all
             logger.exception("Unhandled APIError occured.")
             return False
-        logger.warn("Exception prevented verification of corp id %s existance. Assuming false." % corp_id)
-        return False
+        except:
+            logger.warn("Exception prevented verification of corp id %s existance. Assuming false." % corp_id)
+            return False
 
     @staticmethod
     def validate_member_api(api_id, api_key):
@@ -282,7 +286,7 @@ class EveApiManager():
             if EveApiManager.check_api_is_type_account(api_id, api_key) is False:
                 logger.info("Api id %s is not type account as required for members - failed validation." % api_id)
                 return False
-        
+
         if EveApiManager.check_api_is_full(api_id, api_key) is False:
             logger.info("Api id %s does not meet member access mask requirements - failed validation." % api_id)
             return False
@@ -308,23 +312,24 @@ class EveApiManager():
             if int(e.code) in [221, 222]:
                 raise e
             raise EveApiManager.ApiInvalidError(api_id)
-        except Exception as e:
+        except Exception:
             raise EveApiManager.ApiInvalidError(api_id)
         auth, c = AuthServicesInfo.objects.get_or_create(user=user)
         states = [auth.state]
-        from celerytask.tasks import determine_membership_by_character # circular import issue
+        from authentication.tasks import determine_membership_by_character  # circular import issue
         for char in chars:
             evechar = EveCharacter()
             evechar.character_name = chars[char]['name']
             evechar.corporation_id = chars[char]['corp']['id']
             evechar.alliance_id = chars[char]['alliance']['id']
             states.append(determine_membership_by_character(evechar))
-        if (not MEMBER_STATE in states) and (not BLUE_STATE in states):
+        if MEMBER_STATE not in states and BLUE_STATE not in states:
             # default to requiring member keys for applications
             states.append(MEMBER_STATE)
         logger.debug('Checking API %s for states %s' % (api_id, states))
         for state in states:
-            if (state == MEMBER_STATE and settings.MEMBER_API_ACCOUNT) or (state == BLUE_STATE and settings.BLUE_API_ACCOUNT):
+            if (state == MEMBER_STATE and settings.MEMBER_API_ACCOUNT) or (
+                            state == BLUE_STATE and settings.BLUE_API_ACCOUNT):
                 if info['type'] != 'account':
                     raise EveApiManager.ApiAccountValidationError(api_id)
             if state == MEMBER_STATE:

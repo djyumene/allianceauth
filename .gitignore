@@ -64,3 +64,6 @@ static/*
 #celerybeat
 *.pid
 celerybeat-schedule
+
+#pycharm
+.idea/*

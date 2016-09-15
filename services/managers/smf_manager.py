@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import os
 import calendar
 from datetime import datetime
@@ -9,7 +10,11 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+
 class smfManager:
+    def __init__(self):
+        pass
+
     SQL_ADD_USER = r"INSERT INTO smf_members (member_name, passwd, email_address, date_registered, real_name," \
                    r" buddy_list, message_labels, openid_uri, signature, ignore_boards) " \
                    r"VALUES (%s, %s, %s, %s, %s, 0, 0, 0, 0, 0)"
@@ -36,15 +41,13 @@ class smfManager:
 
     SQL_ADD_USER_AVATAR = r"UPDATE smf_members SET avatar = %s WHERE id_member = %s"
 
-
-
     @staticmethod
     def generate_random_pass():
         return os.urandom(8).encode('hex')
 
     @staticmethod
     def gen_hash(username_clean, passwd):
-        return hashlib.sha1((username_clean) + passwd).hexdigest()
+        return hashlib.sha1(username_clean + passwd).hexdigest()
 
     @staticmethod
     def santatize_username(username):
@@ -66,7 +69,6 @@ class smfManager:
         logger.info("Created smf group %s" % groupname)
         return smfManager.get_group_id(groupname)
 
-
     @staticmethod
     def get_group_id(groupname):
         logger.debug("Getting smf group id for groupname %s" % groupname)
@@ -87,7 +89,6 @@ class smfManager:
             return True
         logger.debug("User %s not found on smf" % username)
         return False
-
 
     @staticmethod
     def add_avatar(member_name, characterid):
@@ -133,7 +134,8 @@ class smfManager:
 
     @staticmethod
     def add_user(username, email_address, groups, characterid):
-        logger.debug("Adding smf user with member_name %s, email_address %s, characterid %s" % (username, email_address, characterid))
+        logger.debug("Adding smf user with member_name %s, email_address %s, characterid %s" % (
+            username, email_address, characterid))
         cursor = connections['smf'].cursor()
         username_clean = smfManager.santatize_username(username)
         passwd = smfManager.generate_random_pass()
@@ -141,12 +143,13 @@ class smfManager:
         logger.debug("Proceeding to add smf user %s and pwhash starting with %s" % (username, pwhash[0:5]))
         register_date = smfManager.get_current_utc_date()
         # check if the username was simply revoked
-        if smfManager.check_user(username)is True :
+        if smfManager.check_user(username) is True:
             logger.warn("Unable to add smf user with username %s - already exists. Updating user instead." % username)
             smfManager.__update_user_info(username_clean, email_address, pwhash)
         else:
             try:
-                cursor.execute(smfManager.SQL_ADD_USER, [username_clean, passwd, email_address, register_date, username_clean])
+                cursor.execute(smfManager.SQL_ADD_USER,
+                               [username_clean, passwd, email_address, register_date, username_clean])
                 smfManager.add_avatar(username_clean, characterid)
                 logger.info("Added smf member_name %s" % username_clean)
                 smfManager.update_groups(username_clean, groups)
@@ -157,7 +160,8 @@ class smfManager:
 
     @staticmethod
     def __update_user_info(username, email_address, passwd):
-        logger.debug("Updating smf user %s info: username %s password of length %s" % (username, email_address, len(passwd)))
+        logger.debug(
+            "Updating smf user %s info: username %s password of length %s" % (username, email_address, len(passwd)))
         cursor = connections['smf'].cursor()
         try:
             cursor.execute(smfManager.SQL_DIS_USER, [email_address, passwd, username])
@@ -191,12 +195,11 @@ class smfManager:
             logger.info("Updating smf user %s groups - adding %s, removing %s" % (username, addgroups, remgroups))
             act_group_id = set()
             for g in addgroups:
-                if not g in forum_groups:
+                if g not in forum_groups:
                     forum_groups[g] = smfManager.create_group(g)
                 act_group_id.add(str(smfManager.get_group_id(g)))
             string_groups = ','.join(act_group_id)
             smfManager.add_user_to_group(userid, string_groups)
-
 
     @staticmethod
     def add_user_to_group(userid, groupid):
@@ -230,11 +233,11 @@ class smfManager:
         try:
             pwhash = smfManager.gen_hash(username, password)
             cursor.execute(smfManager.SQL_DIS_USER, [revoke_email, pwhash, username])
-            userid = smfManager.get_user_id(username)
+            smfManager.get_user_id(username)
             smfManager.update_groups(username, [])
             logger.info("Disabled smf user %s" % username)
             return True
-        except TypeError as e:
+        except TypeError:
             logger.exception("TypeError occured while disabling user %s - failed to disable." % username)
             return False
 
@@ -247,14 +250,11 @@ class smfManager:
         if smfManager.check_user(username):
             username_clean = smfManager.santatize_username(username)
             pwhash = smfManager.gen_hash(username_clean, password)
-            logger.debug("Proceeding to update smf user %s password with pwhash starting with %s" % (username, pwhash[0:5]))
+            logger.debug(
+                "Proceeding to update smf user %s password with pwhash starting with %s" % (username, pwhash[0:5]))
             cursor.execute(smfManager.SQL_UPDATE_USER_PASSWORD, [pwhash, username])
             smfManager.add_avatar(username, characterid)
             logger.info("Updated smf user %s password." % username)
             return password
         logger.error("Unable to update smf user %s password - user not found on smf." % username)
         return ""
-
-
-
-

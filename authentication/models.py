@@ -1,10 +1,11 @@
+from __future__ import unicode_literals
+from django.utils.encoding import python_2_unicode_compatible
 from django.db import models
 from django.contrib.auth.models import User
 from authentication.states import MEMBER_STATE, BLUE_STATE, NONE_STATE
 
-def get_none_state():
-    return MembershipState.objects.get_or_create(name=NONE_STATE)[0]
 
+@python_2_unicode_compatible
 class AuthServicesInfo(models.Model):
     STATE_CHOICES = (
         (NONE_STATE, 'None'),

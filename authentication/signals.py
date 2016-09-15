@@ -1,12 +1,14 @@
+from __future__ import unicode_literals
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from authentication.models import AuthServicesInfo
 from authentication.states import MEMBER_STATE, BLUE_STATE
-from celerytask.tasks import make_member, make_blue, disable_member
-from util.common_task import validate_services
+from authentication.tasks import make_member, make_blue, disable_member
+from services.tasks import validate_services
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 @receiver(pre_save, sender=AuthServicesInfo)
 def pre_save_auth_state(sender, instance, *args, **kwargs):
@@ -20,4 +22,4 @@ def pre_save_auth_state(sender, instance, *args, **kwargs):
                 make_blue(instance.user)
             else:
                 disable_member(instance.user)
-            validate_services(user)
+            validate_services(instance.user)

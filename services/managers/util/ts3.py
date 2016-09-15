@@ -1,8 +1,9 @@
+from __future__ import unicode_literals
 import socket
 import logging
 
 
-class ConnectionError():
+class ConnectionError:
     def __init__(self, ip, port):
         self.ip = ip
         self.port = port
@@ -23,7 +24,7 @@ ts3_escape = {'/': r"\/",
               "\v": r'\v'}
 
 
-class TS3Proto():
+class TS3Proto:
     bytesin = 0
     bytesout = 0
 
@@ -66,7 +67,7 @@ class TS3Proto():
         while True:
             resp = self._sockfile.readline()
             resp = self.parse_command(resp)
-            if not 'command' in resp:
+            if 'command' not in resp:
                 data.append(resp)
             else:
                 break
@@ -139,7 +140,7 @@ class TS3Proto():
                     v = [v[0], '='.join(v[1:])]
                 key, value = v
                 keys[key] = self._unescape_str(value)
-            elif (not v == ['']): 
+            elif not v == ['']:
                 if v[0][0] and v[0][0] == '-':
                     # Option
                     opts.append(v[0][1:])
@@ -159,9 +160,10 @@ class TS3Proto():
         @type value: string/int
         """
 
-        if isinstance(value, int): return "%d" % value
+        if isinstance(value, int):
+            return "%d" % value
         value = value.replace("\\", r'\\')
-        for i, j in ts3_escape.iteritems():
+        for i, j in ts3_escape:
             value = value.replace(i, j)
         return value
 
@@ -173,12 +175,12 @@ class TS3Proto():
         @type value: string/int
         """
 
-        if isinstance(value, int): return "%d" % value
+        if isinstance(value, int):
+            return "%d" % value
         value = value.replace(r"\\", "\\")
-        for i, j in ts3_escape.iteritems():
+        for i, j in ts3_escape:
             value = value.replace(j, i)
         return value
-
 
     def send(self, payload):
         if self._connected:
@@ -230,7 +232,7 @@ class TS3Server(TS3Proto):
         """
         Send a global message to the current Virtual Server
         @param msg: Message
-        @type ip: str
+        @type msg: str
         """
         if self._connected:
             return self.send_command('gm', keys={'msg': msg})

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from django.conf import settings
 
 from services.managers.util.ts3 import TS3Server
@@ -5,6 +6,7 @@ from services.models import TSgroup
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class Teamspeak3Manager:
     def __init__(self):
@@ -117,10 +119,9 @@ class Teamspeak3Manager:
     def _add_user_to_group(uid, groupid):
         logger.debug("Adding group id %s to TS3 user id %s" % (groupid, uid))
         server = Teamspeak3Manager.__get_created_server()
-        server_groups = Teamspeak3Manager._group_list()
         user_groups = Teamspeak3Manager._user_group_list(uid)
-        
-        if not groupid in user_groups.values():
+
+        if groupid not in user_groups.values():
             logger.debug("User does not have group already. Issuing command to add.")
             server.send_command('servergroupaddclient',
                                 {'sgid': str(groupid), 'cldbid': uid})
@@ -130,7 +131,6 @@ class Teamspeak3Manager:
     def _remove_user_from_group(uid, groupid):
         logger.debug("Removing group id %s from TS3 user id %s" % (groupid, uid))
         server = Teamspeak3Manager.__get_created_server()
-        server_groups = Teamspeak3Manager._group_list()
         user_groups = Teamspeak3Manager._user_group_list(uid)
 
         if str(groupid) in user_groups.values():
@@ -149,17 +149,19 @@ class Teamspeak3Manager:
             for key in remote_groups:
                 logger.debug("Typecasting remote_group value at position %s to int: %s" % (key, remote_groups[key]))
                 remote_groups[key] = int(remote_groups[key])
-            
+
             for group in local_groups:
                 logger.debug("Checking local group %s" % group)
                 if group.ts_group_id not in remote_groups.values():
-                    logger.debug("Local group id %s not found on server. Deleting model %s" % (group.ts_group_id, group))
+                    logger.debug(
+                        "Local group id %s not found on server. Deleting model %s" % (group.ts_group_id, group))
                     TSgroup.objects.filter(ts_group_id=group.ts_group_id).delete()
             for key in remote_groups:
-                g = TSgroup(ts_group_id=remote_groups[key],ts_group_name=key)
+                g = TSgroup(ts_group_id=remote_groups[key], ts_group_name=key)
                 q = TSgroup.objects.filter(ts_group_id=g.ts_group_id)
                 if not q:
-                    logger.debug("Local group does not exist for TS group %s. Creating TSgroup model %s" % (remote_groups[key], g))
+                    logger.debug("Local group does not exist for TS group %s. Creating TSgroup model %s" % (
+                        remote_groups[key], g))
                     g.save()
         except:
             logger.exception("An unhandled exception has occured while syncing TS groups.")
@@ -168,13 +170,12 @@ class Teamspeak3Manager:
     @staticmethod
     def add_user(username, corp_ticker):
         username_clean = Teamspeak3Manager.__santatize_username(Teamspeak3Manager.__generate_username(username,
-                                                               corp_ticker))
+                                                                                                      corp_ticker))
         server = Teamspeak3Manager.__get_created_server()
-        token = ""
         logger.debug("Adding user to TS3 server with cleaned username %s" % username_clean)
         server_groups = Teamspeak3Manager._group_list()
 
-        if not settings.DEFAULT_AUTH_GROUP in server_groups:
+        if settings.DEFAULT_AUTH_GROUP not in server_groups:
             Teamspeak3Manager._create_group(settings.DEFAULT_AUTH_GROUP)
 
         alliance_group_id = Teamspeak3Manager._group_id_by_name(settings.DEFAULT_AUTH_GROUP)
@@ -189,17 +190,16 @@ class Teamspeak3Manager:
             return username_clean, token
         except:
             logger.exception("Failed to add teamspeak user %s - received response: %s" % (username_clean, ret))
-            return "",""
+            return "", ""
 
     @staticmethod
     def add_blue_user(username, corp_ticker):
         username_clean = Teamspeak3Manager.__santatize_username(Teamspeak3Manager.__generate_username_blue(username,
-                                                                    corp_ticker))
+                                                                                                           corp_ticker))
         server = Teamspeak3Manager.__get_created_server()
-        token = ""
         logger.debug("Adding user to TS3 server with cleaned username %s" % username_clean)
         server_groups = Teamspeak3Manager._group_list()
-        if not settings.DEFAULT_BLUE_GROUP in server_groups:
+        if settings.DEFAULT_BLUE_GROUP not in server_groups:
             Teamspeak3Manager._create_group(settings.DEFAULT_BLUE_GROUP)
 
         blue_group_id = Teamspeak3Manager._group_id_by_name(settings.DEFAULT_BLUE_GROUP)
@@ -214,10 +214,7 @@ class Teamspeak3Manager:
             return username_clean, token
         except:
             logger.exception("Failed to add blue teamspeak user %s - received response: %s" % (username_clean, ret))
-            return "",""
-        
-
-        
+            return "", ""
 
     @staticmethod
     def delete_user(uid):
@@ -291,4 +288,3 @@ class Teamspeak3Manager:
             for g in remgroups:
                 logger.info("Removing Teamspeak user %s from group %s" % (userid, g))
                 Teamspeak3Manager._remove_user_from_group(userid, g)
-

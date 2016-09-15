@@ -5,5 +5,3 @@ from django.apps import AppConfig
 
 class FleetupConfig(AppConfig):
     name = 'fleetup'
-
-

@@ -1,29 +1,27 @@
+from __future__ import unicode_literals
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.decorators import user_passes_test
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from util import check_if_user_has_permission
-from authentication.managers import AuthServicesInfoManager
+from authentication.models import AuthServicesInfo
 from eveonline.managers import EveManager
 from optimer.form import opForm
 from optimer.models import optimer
 from authentication.decorators import members_and_blues
 
-
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 @login_required
 @members_and_blues()
 @permission_required('auth.optimer_view')
 def optimer_view(request):
     logger.debug("optimer_view called by user %s" % request.user)
-    optimer_list = optimer.objects.all()
-    render_items = {'optimer': optimer.objects.all(),}
+    render_items = {'optimer': optimer.objects.all(), }
 
     return render(request, 'registered/operationmanagement.html', context=render_items)
 
@@ -33,13 +31,13 @@ def optimer_view(request):
 def add_optimer_view(request):
     logger.debug("add_optimer_view called by user %s" % request.user)
     if request.method == 'POST':
-    	form = opForm(request.POST)
-    	logger.debug("Request type POST contains form valid: %s" % form.is_valid())
+        form = opForm(request.POST)
+        logger.debug("Request type POST contains form valid: %s" % form.is_valid())
         if form.is_valid():
-            #Get Current Time
+            # Get Current Time
             post_time = timezone.now()
             # Get character
-            auth_info = AuthServicesInfoManager.get_auth_service_info(request.user)
+            auth_info = AuthServicesInfo.objects.get_or_create(user=request.user)[0]
             character = EveManager.get_character_by_id(auth_info.main_char_id)
             # handle valid form
             op = optimer()
@@ -76,8 +74,10 @@ def remove_optimer(request, optimer_id):
         logger.info("Deleting optimer id %s by user %s" % (optimer_id, request.user))
         messages.success(request, 'Removed operation timer for %s.' % op.operation_name)
     else:
-        logger.error("Unable to delete optimer id %s for user %s - operation matching id not found." % (optimer_id, request.user))
+        logger.error("Unable to delete optimer id %s for user %s - operation matching id not found." % (
+            optimer_id, request.user))
     return redirect("auth_optimer_view")
+
 
 @login_required
 @permission_required('auth.optimer_management')
@@ -88,7 +88,7 @@ def edit_optimer(request, optimer_id):
         form = opForm(request.POST)
         logger.debug("Received POST request containing update optimer form, is valid: %s" % form.is_valid())
         if form.is_valid():
-            auth_info = AuthServicesInfoManager.get_auth_service_info(request.user)
+            auth_info = AuthServicesInfo.objects.get_or_create(user=request.user)[0]
             character = EveManager.get_character_by_id(auth_info.main_char_id)
             op.doctrine = form.cleaned_data['doctrine']
             op.system = form.cleaned_data['system']
@@ -114,5 +114,5 @@ def edit_optimer(request, optimer_id):
             'fc': op.fc,
             'details': op.details,
         }
-        form = opForm(initial= data)
-    return render(request, 'registered/optimerupdate.html', context={'form':form})
+        form = opForm(initial=data)
+    return render(request, 'registered/optimerupdate.html', context={'form': form})

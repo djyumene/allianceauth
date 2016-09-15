@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import os
 import calendar
 from datetime import datetime
@@ -10,6 +11,7 @@ import logging
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
 
 class Phpbb3Manager:
     SQL_ADD_USER = r"INSERT INTO phpbb_users (username, username_clean, " \
@@ -37,8 +39,9 @@ class Phpbb3Manager:
     SQL_GET_USER_GROUPS = r"SELECT phpbb_groups.group_name FROM phpbb_groups , phpbb_user_group WHERE " \
                           r"phpbb_user_group.group_id = phpbb_groups.group_id AND user_id=%s"
 
-    SQL_ADD_USER_AVATAR = r"UPDATE phpbb_users SET user_avatar_type=2, user_avatar_width=64, user_avatar_height=64, user_avatar=%s WHERE user_id = %s"
-    
+    SQL_ADD_USER_AVATAR = r"UPDATE phpbb_users SET user_avatar_type=2, user_avatar_width=64, user_avatar_height=64, " \
+                          "user_avatar=%s WHERE user_id = %s"
+
     SQL_CLEAR_USER_PERMISSIONS = r"UPDATE phpbb_users SET user_permissions = '' WHERE user_Id = %s"
 
     SQL_DEL_SESSION = r"DELETE FROM phpbb_sessions where session_user_id = %s"
@@ -153,7 +156,8 @@ class Phpbb3Manager:
 
     @staticmethod
     def add_user(username, email, groups, characterid):
-        logger.debug("Adding phpbb user with username %s, email %s, groups %s, characterid %s" % (username, email, groups, characterid))
+        logger.debug("Adding phpbb user with username %s, email %s, groups %s, characterid %s" % (
+            username, email, groups, characterid))
         cursor = connections['phpbb3'].cursor()
 
         username_clean = Phpbb3Manager.__santatize_username(username)
@@ -195,7 +199,7 @@ class Phpbb3Manager:
             Phpbb3Manager.update_groups(username, [])
             logger.info("Disabled phpbb user %s" % username)
             return True
-        except TypeError as e:
+        except TypeError:
             logger.exception("TypeError occured while disabling user %s - failed to disable." % username)
             return False
 
@@ -244,7 +248,9 @@ class Phpbb3Manager:
                         cursor.execute(Phpbb3Manager.SQL_REMOVE_USER_GROUP, [userid, groupid])
                         logger.info("Removed phpbb user %s from group %s" % (username, group))
                     except:
-                        logger.exception("Exception prevented removal of phpbb user %s with id %s from group %s with id %s" % (username, userid, group, groupid))
+                        logger.exception(
+                            "Exception prevented removal of phpbb user %s with id %s from group %s with id %s" % (
+                                username, userid, group, groupid))
                         pass
 
     @staticmethod
@@ -267,7 +273,8 @@ class Phpbb3Manager:
             password = Phpbb3Manager.__generate_random_pass()
         if Phpbb3Manager.check_user(username):
             pwhash = Phpbb3Manager.__gen_hash(password)
-            logger.debug("Proceeding to update phpbb user %s password with pwhash starting with %s" % (username, pwhash[0:5]))
+            logger.debug(
+                "Proceeding to update phpbb user %s password with pwhash starting with %s" % (username, pwhash[0:5]))
             cursor.execute(Phpbb3Manager.SQL_UPDATE_USER_PASSWORD, [pwhash, username])
             Phpbb3Manager.__add_avatar(username, characterid)
             logger.info("Updated phpbb user %s password." % username)
@@ -277,7 +284,8 @@ class Phpbb3Manager:
 
     @staticmethod
     def __update_user_info(username, email, password):
-        logger.debug("Updating phpbb user %s info: username %s password of length %s" % (username, email, len(password)))
+        logger.debug(
+            "Updating phpbb user %s info: username %s password of length %s" % (username, email, len(password)))
         cursor = connections['phpbb3'].cursor()
         try:
             cursor.execute(Phpbb3Manager.SQL_DIS_USER, [email, password, username])

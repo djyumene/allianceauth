@@ -1,28 +1,22 @@
+from __future__ import unicode_literals
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import HttpResponseRedirect
 from notifications import notify
-from models import HRApplication
-from models import HRApplicationComment
-from models import ApplicationForm
-from models import Application
-from models import ApplicationQuestion
-from models import ApplicationResponse
-from models import ApplicationComment
-from forms import HRApplicationCommentForm
-from forms import HRApplicationSearchForm
-from eveonline.models import EveCorporationInfo
+from hrapplications.models import ApplicationForm
+from hrapplications.models import Application
+from hrapplications.models import ApplicationResponse
+from hrapplications.models import ApplicationComment
+from hrapplications.forms import HRApplicationCommentForm
+from hrapplications.forms import HRApplicationSearchForm
 from eveonline.models import EveCharacter
 from authentication.models import AuthServicesInfo
-
-from django.conf import settings
-from eveonline.managers import EveManager
 
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 def create_application_test(user):
     auth, c = AuthServicesInfo.objects.get_or_create(user=user)
@@ -30,6 +24,7 @@ def create_application_test(user):
         return True
     else:
         return False
+
 
 @login_required
 def hr_application_management_view(request):
@@ -41,7 +36,7 @@ def hr_application_management_view(request):
     if auth_info.main_char_id:
         try:
             main_char = EveCharacter.objects.get(character_id=auth_info.main_char_id)
-        except:
+        except EveCharacter.DoesNotExist:
             pass
     if request.user.is_superuser:
         corp_applications = Application.objects.filter(approved=None)
@@ -51,7 +46,8 @@ def hr_application_management_view(request):
             app_form = ApplicationForm.objects.get(corp__corporation_id=main_char.corporation_id)
             corp_applications = Application.objects.filter(form=app_form).filter(approved=None)
             finished_corp_applications = Application.objects.filter(form=app_form).filter(approved__in=[True, False])
-    logger.debug("Retrieved %s personal, %s corp applications for %s" % (len(request.user.applications.all()), len(corp_applications), request.user))
+    logger.debug("Retrieved %s personal, %s corp applications for %s" % (
+        len(request.user.applications.all()), len(corp_applications), request.user))
     context = {
         'personal_apps': request.user.applications.all(),
         'applications': corp_applications,
@@ -60,6 +56,7 @@ def hr_application_management_view(request):
         'create': create_application_test(request.user)
     }
     return render(request, 'registered/hrapplicationmanagement.html', context=context)
+
 
 @login_required
 @user_passes_test(create_application_test)
@@ -74,19 +71,22 @@ def hr_application_create_view(request, form_id=None):
                 application.save()
                 for question in app_form.questions.all():
                     response = ApplicationResponse(question=question, application=application)
-                    response.answer = request.POST.get(str(question.pk), "Failed to retrieve answer provided by applicant.")
+                    response.answer = request.POST.get(str(question.pk),
+                                                       "Failed to retrieve answer provided by applicant.")
                     response.save()
                 logger.info("%s created %s" % (request.user, application))
             return redirect('auth_hrapplications_view')
         else:
             questions = app_form.questions.all()
-            return render(request, 'registered/hrapplicationcreate.html', context={'questions':questions, 'corp':app_form.corp})
+            return render(request, 'registered/hrapplicationcreate.html',
+                          context={'questions': questions, 'corp': app_form.corp})
     else:
         choices = []
         for app_form in ApplicationForm.objects.all():
             if not Application.objects.filter(user=request.user).filter(form=app_form).exists():
                 choices.append((app_form.id, app_form.corp.corporation_name))
-        return render(request, 'registered/hrapplicationcorpchoice.html', context={'choices':choices})
+        return render(request, 'registered/hrapplicationcorpchoice.html', context={'choices': choices})
+
 
 @login_required
 def hr_application_personal_view(request, app_id):
@@ -105,14 +105,14 @@ def hr_application_personal_view(request, app_id):
     else:
         logger.warn("User %s not authorized to view %s" % (request.user, app))
         return redirect('auth_hrapplications_view')
-    
+
 
 @login_required
 def hr_application_personal_removal(request, app_id):
     logger.debug("hr_application_personal_removal called by user %s for app id %s" % (request.user, app_id))
     app = get_object_or_404(Application, pk=app_id)
     if app.user == request.user:
-        if app.approved == None:
+        if app.approved is None:
             logger.info("User %s deleting %s" % (request.user, app))
             app.delete()
         else:
@@ -120,6 +120,7 @@ def hr_application_personal_removal(request, app_id):
     else:
         logger.warn("User %s not authorized to delete %s" % (request.user, app))
     return redirect('auth_hrapplications_view')
+
 
 @login_required
 @permission_required('auth.human_resources')
@@ -167,6 +168,7 @@ def hr_application_remove(request, app_id):
     notify(app.user, "Application Deleted", message="Your application to %s was deleted." % app.form.corp)
     return redirect('auth_hrapplications_view')
 
+
 @login_required
 @permission_required('auth.human_resources')
 @permission_required('hrapplications.approve_application')
@@ -177,10 +179,12 @@ def hr_application_approve(request, app_id):
         logger.info("User %s approving %s" % (request.user, app))
         app.approved = True
         app.save()
-        notify(app.user, "Application Accepted", message="Your application to %s has been approved." % app.form.corp, level="success")
+        notify(app.user, "Application Accepted", message="Your application to %s has been approved." % app.form.corp,
+               level="success")
     else:
         logger.warn("User %s not authorized to approve %s" % (request.user, app))
     return redirect('auth_hrapplications_view')
+
 
 @login_required
 @permission_required('auth.human_resources')
@@ -192,10 +196,12 @@ def hr_application_reject(request, app_id):
         logger.info("User %s rejecting %s" % (request.user, app))
         app.approved = False
         app.save()
-        notify(app.user, "Application Rejected", message="Your application to %s has been rejected." % app.form.corp, level="danger")
+        notify(app.user, "Application Rejected", message="Your application to %s has been rejected." % app.form.corp,
+               level="danger")
     else:
         logger.warn("User %s not authorized to reject %s" % (request.user, app))
     return redirect('auth_hrapplications_view')
+
 
 @login_required
 @permission_required('auth.human_resources')
@@ -216,15 +222,16 @@ def hr_application_search(request):
                 try:
                     character = EveCharacter.objects.get(character_id=auth_info.main_char_id)
                     app_list = Application.objects.filter(form__corp__corporation_id=character.corporation_id)
-                except:
-                    logger.warn("User %s missing main character model: unable to filter applications to search" % request.user)
+                except EveCharacter.DoesNotExist:
+                    logger.warn(
+                        "User %s missing main character model: unable to filter applications to search" % request.user)
             for application in app_list:
                 if application.main_character:
                     if searchstring in application.main_character.character_name.lower():
                         applications.add(application)
                     if searchstring in application.main_character.corporation_name.lower():
                         applications.add(application)
-                    if searchstring in application.main_character.alliance_name.lower():\
+                    if searchstring in application.main_character.alliance_name.lower():
                         applications.add(application)
                 for character in application.characters:
                     if searchstring in character.character_name.lower():
@@ -235,7 +242,8 @@ def hr_application_search(request):
                         applications.add(application)
                 if searchstring in application.user.username.lower():
                     applications.add(application)
-            logger.info("Found %s Applications for user %s matching search string %s" % (len(applications), request.user, searchstring))
+            logger.info("Found %s Applications for user %s matching search string %s" % (
+                len(applications), request.user, searchstring))
 
             context = {'applications': applications, 'search_form': HRApplicationSearchForm()}
 
@@ -249,6 +257,7 @@ def hr_application_search(request):
         logger.debug("Returning empty search form for user %s" % request.user)
         return redirect("auth_hrapplications_view")
 
+
 @login_required
 @permission_required('auth.human_resources')
 def hr_application_mark_in_progress(request, app_id):
@@ -259,13 +268,15 @@ def hr_application_mark_in_progress(request, app_id):
         auth_info = AuthServicesInfo.objects.get(user=request.user)
         try:
             character = EveCharacter.objects.get(character_id=auth_info.main_char_id)
-        except:
+        except EveCharacter.DoesNotExist:
             logger.warn("User %s marking %s in review has no main character" % (request.user, app))
             character = None
         app.reviewer = request.user
         app.reviewer_character = character
         app.save()
-        notify(app.user, "Application In Progress", message="Your application to %s is being reviewed by %s" % (app.form.corp, app.reviewer_str))
+        notify(app.user, "Application In Progress",
+               message="Your application to %s is being reviewed by %s" % (app.form.corp, app.reviewer_str))
     else:
-        logger.warn("User %s unable to mark %s in progress: already being reviewed by %s" % (request.user, app, app.reviewer))
+        logger.warn(
+            "User %s unable to mark %s in progress: already being reviewed by %s" % (request.user, app, app.reviewer))
     return redirect("auth_hrapplication_view", app_id)

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -5,17 +6,18 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import Group
 from django.contrib import messages
 from notifications import notify
-from models import GroupDescription
-from models import GroupRequest
-from models import HiddenGroup
-from models import OpenGroup
-from authentication.managers import AuthServicesInfoManager
+from groupmanagement.models import GroupDescription
+from groupmanagement.models import GroupRequest
+from groupmanagement.models import HiddenGroup
+from groupmanagement.models import OpenGroup
+from authentication.models import AuthServicesInfo
 from eveonline.managers import EveManager
 from django.utils.translation import ugettext_lazy as _
 
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 @login_required
 @permission_required('auth.group_management')
@@ -29,7 +31,8 @@ def group_management(request):
             leaverequests.append(grouprequest)
         else:
             acceptrequests.append(grouprequest)
-    logger.debug("Providing user %s with %s acceptrequests and %s leaverequests." % (request.user, len(acceptrequests), len(leaverequests)))
+    logger.debug("Providing user %s with %s acceptrequests and %s leaverequests." % (
+        request.user, len(acceptrequests), len(leaverequests)))
 
     render_items = {'acceptrequests': acceptrequests, 'leaverequests': leaverequests}
 
@@ -46,12 +49,17 @@ def group_accept_request(request, group_request_id):
         group_request.user.groups.add(group)
         group_request.user.save()
         group_request.delete()
-        logger.info("User %s accepted group request from user %s to group %s" % (request.user, group_request.user, group_request.group.name))
-        notify(group_request.user, "Group Application Accepted", level="success", message="Your application to %s has been accepted." % group_request.group)
-        messages.success(request, 'Accepted application from %s to %s.' % (group_request.main_char, group_request.group))
+        logger.info("User %s accepted group request from user %s to group %s" % (
+            request.user, group_request.user, group_request.group.name))
+        notify(group_request.user, "Group Application Accepted", level="success",
+               message="Your application to %s has been accepted." % group_request.group)
+        messages.success(request,
+                         'Accepted application from %s to %s.' % (group_request.main_char, group_request.group))
     except:
-        messages.error(request, 'An unhandled error occured while processing the application from %s to %s.' % (group_request.main_char, group_request.group))
-        logger.exception("Unhandled exception occured while user %s attempting to accept grouprequest id %s." % (request.user, group_request_id))
+        messages.error(request, 'An unhandled error occurred while processing the application from %s to %s.' % (
+            group_request.main_char, group_request.group))
+        logger.exception("Unhandled exception occurred while user %s attempting to accept grouprequest id %s." % (
+            request.user, group_request_id))
         pass
 
     return redirect("auth_group_management")
@@ -65,13 +73,18 @@ def group_reject_request(request, group_request_id):
         group_request = GroupRequest.objects.get(id=group_request_id)
 
         if group_request:
-            logger.info("User %s rejected group request from user %s to group %s" % (request.user, group_request.user, group_request.group.name))
+            logger.info("User %s rejected group request from user %s to group %s" % (
+                request.user, group_request.user, group_request.group.name))
             group_request.delete()
-            notify(group_request.user, "Group Application Rejected", level="danger", message="Your application to %s has been rejected." % group_request.group)
-            messages.success(request, 'Rejected application from %s to %s.' % (group_request.main_char, group_request.group))
+            notify(group_request.user, "Group Application Rejected", level="danger",
+                   message="Your application to %s has been rejected." % group_request.group)
+            messages.success(request,
+                             'Rejected application from %s to %s.' % (group_request.main_char, group_request.group))
     except:
-        messages.error(request, 'An unhandled error occured while processing the application from %s to %s.' % (group_request.main_char, group_request.group))
-        logger.exception("Unhandled exception occured while user %s attempting to reject group request id %s" % (request.user, group_request_id))
+        messages.error(request, 'An unhandled error occured while processing the application from %s to %s.' % (
+            group_request.main_char, group_request.group))
+        logger.exception("Unhandled exception occured while user %s attempting to reject group request id %s" % (
+            request.user, group_request_id))
         pass
 
     return redirect("auth_group_management")
@@ -80,19 +93,25 @@ def group_reject_request(request, group_request_id):
 @login_required
 @permission_required('auth.group_management')
 def group_leave_accept_request(request, group_request_id):
-    logger.debug("group_leave_accept_request called by user %s for group request id %s" % (request.user, group_request_id))
+    logger.debug(
+        "group_leave_accept_request called by user %s for group request id %s" % (request.user, group_request_id))
     try:
         group_request = GroupRequest.objects.get(id=group_request_id)
         group, created = Group.objects.get_or_create(name=group_request.group.name)
         group_request.user.groups.remove(group)
         group_request.user.save()
         group_request.delete()
-        logger.info("User %s accepted group leave request from user %s to group %s" % (request.user, group_request.user, group_request.group.name))
-        notify(group_request.user, "Group Leave Request Accepted", level="success", message="Your request to leave %s has been accepted." % group_request.group)
-        messages.success(request, 'Accepted application from %s to leave %s.' % (group_request.main_char, group_request.group))
+        logger.info("User %s accepted group leave request from user %s to group %s" % (
+            request.user, group_request.user, group_request.group.name))
+        notify(group_request.user, "Group Leave Request Accepted", level="success",
+               message="Your request to leave %s has been accepted." % group_request.group)
+        messages.success(request,
+                         'Accepted application from %s to leave %s.' % (group_request.main_char, group_request.group))
     except:
-        messages.error(request, 'An unhandled error occured while processing the application from %s to leave %s.' % (group_request.main_char, group_request.group))
-        logger.exception("Unhandled exception occured while user %s attempting to accept group leave request id %s" % (request.user, group_request_id))
+        messages.error(request, 'An unhandled error occured while processing the application from %s to leave %s.' % (
+            group_request.main_char, group_request.group))
+        logger.exception("Unhandled exception occured while user %s attempting to accept group leave request id %s" % (
+            request.user, group_request_id))
         pass
 
     return redirect("auth_group_management")
@@ -101,18 +120,24 @@ def group_leave_accept_request(request, group_request_id):
 @login_required
 @permission_required('auth.group_management')
 def group_leave_reject_request(request, group_request_id):
-    logger.debug("group_leave_reject_request called by user %s for group request id %s" % (request.user, group_request_id))
+    logger.debug(
+        "group_leave_reject_request called by user %s for group request id %s" % (request.user, group_request_id))
     try:
         group_request = GroupRequest.objects.get(id=group_request_id)
 
         if group_request:
             group_request.delete()
-            logger.info("User %s rejected group leave request from user %s for group %s" % (request.user, group_request.user, group_request.group.name))
-            notify(group_request.user, "Group Leave Request Rejected", level="danger", message="Your request to leave %s has been rejected." % group_request.group)
-            messages.success(request, 'Rejected application from %s to leave %s.' % (group_request.main_char, group_request.group))
+            logger.info("User %s rejected group leave request from user %s for group %s" % (
+                request.user, group_request.user, group_request.group.name))
+            notify(group_request.user, "Group Leave Request Rejected", level="danger",
+                   message="Your request to leave %s has been rejected." % group_request.group)
+            messages.success(request, 'Rejected application from %s to leave %s.' % (
+                group_request.main_char, group_request.group))
     except:
-        messages.error(request, 'An unhandled error occured while processing the application from %s to leave %s.' % (group_request.main_char, group_request.group))
-        logger.exception("Unhandled exception occured while user %s attempting to reject group leave request id %s" % (request.user, group_request_id))
+        messages.error(request, 'An unhandled error occured while processing the application from %s to leave %s.' % (
+            group_request.main_char, group_request.group))
+        logger.exception("Unhandled exception occured while user %s attempting to reject group leave request id %s" % (
+            request.user, group_request_id))
         pass
 
     return redirect("auth_group_management")
@@ -137,17 +162,17 @@ def groups_view(request):
             pass
         else:
             # Get the descriptionn
-            groupDesc = GroupDescription.objects.filter(group=group)
-            groupRequest = GroupRequest.objects.filter(user=request.user).filter(group=group)
+            group_desc = GroupDescription.objects.filter(group=group)
+            group_request = GroupRequest.objects.filter(user=request.user).filter(group=group)
 
-            if groupDesc:
-                if groupRequest:
-                    paired_list.append((group, groupDesc[0], groupRequest[0]))
+            if group_desc:
+                if group_request:
+                    paired_list.append((group, group_desc[0], group_request[0]))
                 else:
-                    paired_list.append((group, groupDesc[0], ""))
+                    paired_list.append((group, group_desc[0], ""))
             else:
-                if groupRequest:
-                    paired_list.append((group, "", groupRequest[0]))
+                if group_request:
+                    paired_list.append((group, "", group_request[0]))
                 else:
                     paired_list.append((group, "", ""))
 
@@ -163,7 +188,7 @@ def group_request_add(request, group_id):
         logger.info("%s joining %s as is an open group" % (request.user, group))
         request.user.groups.add(group)
         return redirect("auth_groups")
-    auth_info = AuthServicesInfoManager.get_auth_service_info(request.user)
+    auth_info = AuthServicesInfo.objects.get_or_create(user=request.user)[0]
     grouprequest = GroupRequest()
     grouprequest.status = _('Pending')
     grouprequest.group = group
@@ -184,7 +209,7 @@ def group_request_leave(request, group_id):
         logger.info("%s leaving %s as is an open group" % (request.user, group))
         request.user.groups.remove(group)
         return redirect("auth_groups")
-    auth_info = AuthServicesInfoManager.get_auth_service_info(request.user)
+    auth_info = AuthServicesInfo.objects.get_or_create(user=request.user)[0]
     grouprequest = GroupRequest()
     grouprequest.status = _('Pending')
     grouprequest.group = group
