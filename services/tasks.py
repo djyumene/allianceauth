@@ -198,16 +198,16 @@ def deactivate_services(user):
 
 
 @task
-def validate_services(user):
-    auth, c = AuthServicesInfo.objects.get_or_create(user=user)
-    if auth.state == MEMBER_STATE:
+def validate_services(user, state):
+    if state == MEMBER_STATE:
         setting_string = 'AUTH'
-    elif auth.state == BLUE_STATE:
+    elif state == BLUE_STATE:
         setting_string = 'BLUE'
     else:
         deactivate_services(user)
         return
-    logger.debug('Ensuring user %s services are available to state %s' % (user, auth.state))
+    logger.debug('Ensuring user %s services are available to state %s' % (user, state))
+    auth = AuthServicesInfo.objects.get_or_create(user=user)[0]
     if auth.mumble_username and not getattr(settings, 'ENABLE_%s_MUMBLE' % setting_string, False):
         MumbleManager.delete_user(auth.mumble_username)
         AuthServicesInfoManager.update_user_mumble_info("", user)
