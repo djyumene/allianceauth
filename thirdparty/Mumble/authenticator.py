@@ -79,7 +79,11 @@ def x2bool(s):
     """Helper function to convert strings from the config to bool"""
     if isinstance(s, bool):
         return s
-    elif isinstance(s, basestring):
+    try:
+        compare_type = basestring
+    except NameError: # python 3
+        compare_type = str
+    elif isinstance(s, compare_type):
         return s.lower() in ['1', 'true']
     raise ValueError()
 
@@ -133,7 +137,7 @@ class config(object):
         cfg.optionxform = str
         cfg.read(filename)
 
-        for h, v in default:
+        for h, v in default.items():
             if not v:
                 # Output this whole section as a list of raw key/value tuples
                 try:
