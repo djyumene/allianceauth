@@ -77,12 +77,13 @@ def eprint(*args, **kwargs):
 
 def x2bool(s):
     """Helper function to convert strings from the config to bool"""
-    if isinstance(s, bool):
-        return s
     try:
         compare_type = basestring
     except NameError: # python 3
         compare_type = str
+
+    if isinstance(s, bool):
+        return s
     elif isinstance(s, compare_type):
         return s.lower() in ['1', 'true']
     raise ValueError()
